@@ -1,0 +1,26 @@
+{
+  "name": "mnchromeext",
+  "version": "1.0.0",
+  "description": "A template project for building Chrome extensions using Manifest V3.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xdjs/MNChromeExt.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xdjs/MNChromeExt/issues"
+  },
+  "homepage": "https://github.com/xdjs/MNChromeExt#readme",
+  "dependencies": {
+    "axios": "^1.10.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.0",
+    "express": "^5.1.0"
+  }
+}
