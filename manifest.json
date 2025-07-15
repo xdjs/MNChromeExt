@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Chrome Extension Template",
-  "description": "A template project for building a Chrome extension.",
+  "name": "MusicNerd Chrome Extension",
+  "description": "A Chrome Extension that looks at what the user is playing and finds info from the MuscNerd Database to display in a popup",
   "version": "0.1.0",
   "action": {
     "default_popup": "popup.html",
@@ -11,12 +11,14 @@
     "service_worker": "src/background.js"
   },
   "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["src/content.js"]
-    }
-  ],
+  {
+    "matches": ["*://www.youtube.com/*"],
+    "js": ["dist/content.js"],  
+    "run_at": "document_idle"
+  }
+],
   "options_page": "options.html",
   "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": ["<all_urls>"]
+  
 } 

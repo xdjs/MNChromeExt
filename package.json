@@ -4,7 +4,9 @@
   "description": "A template project for building Chrome extensions using Manifest V3.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild src/connections/listener.ts --bundle --format=iife --outfile=dist/content.js",
+    "watch": "npm run build -- --watch"
   },
   "repository": {
     "type": "git",
@@ -22,5 +24,10 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.0",
+    "esbuild": "^0.25.6",
+    "typescript": "^5.8.3"
   }
 }
