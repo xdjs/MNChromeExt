@@ -1,0 +1,75 @@
+import { pgTable, foreignKey, uuid, timestamp, unique, text, integer, boolean, pgEnum, serial, varchar, jsonb, decimal } from "drizzle-orm/pg-core"
+import { is, relations, sql } from "drizzle-orm"
+export const platformType = pgEnum("platform_type", ['social', 'web3', 'listen'])
+
+export const users = pgTable("users", {
+  id: uuid("id").default(sql`uuid_generate_v4()`).primaryKey().notNull(),
+});
+
+export const artists = pgTable("artists", {
+	id: uuid("id").default(sql`uuid_generate_v4()`).primaryKey().notNull(),
+	legacyId: text("legacy_id"),
+	bandcamp: text("bandcamp"),
+	facebook: text("facebook"),
+	x: text("x"),
+	soundcloud: text("soundcloud"),
+	notes: text("notes"),
+	patreon: text("patreon"),
+	name: text("name"),
+	instagram: text("instagram"),
+	youtube: text("youtube"),
+	youtubechannel: text("youtubechannel"),
+	bio: text("bio"),
+	lcname: text("lcname"),
+	soundcloudId: integer("soundcloudID"),
+	spotify: text("spotify"),
+	twitch: text("twitch"),
+	imdb: text("imdb"),
+	musicbrainz: text("musicbrainz"),
+	wikidata: text("wikidata"),
+	mixcloud: text("mixcloud"),
+	facebookId: text("facebookID"),
+	discogs: text("discogs"),
+	tiktok: text("tiktok"),
+	tiktokId: text("tiktokID"),
+	jaxsta: text("jaxsta"),
+	famousbirthdays: text("famousbirthdays"),
+	songexploder: text("songexploder"),
+	colorsxstudios: text("colorsxstudios"),
+	bandsintown: text("bandsintown"),
+	linktree: text("linktree"),
+	onlyfans: text("onlyfans"),
+	wikipedia: text("wikipedia"),
+	audius: text("audius"),
+	zora: text("zora"),
+	catalog: text("catalog"),
+	opensea: text("opensea"),
+	foundation: text("foundation"),
+	lastfm: text("lastfm"),
+	linkedin: text("linkedin"),
+	soundxyz: text("soundxyz"),
+	mirror: text("mirror"),
+	glassnode: text("glassnode"),
+	collectsNfTs: boolean("collectsNFTs"),
+	spotifyusername: text("spotifyusername"),
+	bandcampfan: text("bandcampfan"),
+	tellie: text("tellie"),
+	wallets: text("wallets").array(),
+	ens: text("ens"),
+	lens: text("lens"),
+	addedBy: uuid("added_by").notNull().default(sql`uuid_generate_v4()`),
+	cameo: text("cameo"),
+	farcaster: text("farcaster"),
+	supercollector: text("supercollector"),
+	createdAt: timestamp("created_at", { withTimezone: true, mode: 'string' }).defaultNow(),
+	updatedAt: timestamp("updated_at", { withTimezone: true, mode: 'string' }).default(sql`(now() AT TIME ZONE 'utc'::text)`).notNull(),
+},
+	(table) => {
+		return {
+			artistsAddedbyFkey: foreignKey({
+				columns: [table.addedBy],
+				foreignColumns: [users.id],
+				name: "artists_addedby_fkey"
+			}),
+		}
+	});
