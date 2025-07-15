@@ -7,8 +7,9 @@ document.addEventListener('DOMContentLoaded', async () =>  {
       return;
     }
 
+    const title = info.videoTitle || info.title || 'Unknown Title';
     document.body.innerHTML = `
-    <h3 style="margin:0">${info.videoTitle}</h3>
+    <h3 style="margin:0">${title}</h3>
     <p style="margin:4px 0 0 0;color:#666">${info.channel}</p>
     <p style="margin:4px 0 0 0;color:#666">${info.description}</p>
     `;
