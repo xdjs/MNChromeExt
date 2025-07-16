@@ -10,7 +10,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!artist || artist.error) {
     console.log("could not find artist using channel ID, falling back to Name...") 
     const scrape = await scrapeYTInfo(tab.id);
+    console.log(`Scrape: ${scrape.channel}`);
     artist = info && await fetchArtist(scrape.channel);
+    console.log(`Scrape: ${artist}`);
   }
   
   renderArtist(artist);                           // separate module
