@@ -24,8 +24,10 @@ export async function getArtistFromYTid(userID: string) {
 }
 
 export async function getArtistFromYTUsername(Username: string) {
+    Username.toLowerCase();
+    Username.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     try {
-        const result = await db.query.artists.findFirst({where: eq(schema.artists.youtubechannel, Username)});
+        const result = await db.query.artists.findFirst({where: eq(schema.artists.lcname, Username)});
     } catch (error) {
         console.error(`Error fecthing artist my Username: `, error);
     }
