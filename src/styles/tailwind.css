@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom base styles migrated from previous popup.css */
+@layer base {
+  body {
+    margin: 0;
+    padding: 0.75rem;
+    font-family: system-ui, -apple-system, sans-serif;
+    min-width: 300px;
+    min-height: 200px;
+  }
+
+  button {
+    padding: 0.25rem 0.75rem;
+    cursor: pointer;
+  }
+} 
