@@ -7,8 +7,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const [tab] = await chrome.tabs.query({active:true,currentWindow:true});
   const info   = await getYTInfo(tab.id);         // separate module
   var artist = info && await fetchArtist(info); // separate module
-  if (!artist) {
-    console.log("could not find artist using channel ID, switching to Name...") 
+  if (!artist || artist.error) {
+    console.log("could not find artist using channel ID, falling back to Name...") 
     const scrape = await scrapeYTInfo(tab.id);
     artist = info && await fetchArtist(scrape.channel);
   }
