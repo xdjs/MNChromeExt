@@ -10,6 +10,6 @@ export function getArtistFromYTid(ytId: string) {
 
 export function getArtistFromYTUsername(username: string) {
   return db.query.artists.findFirst({
-    where: eq(artists.youtubechannel, username)
+    where: eq(artists.name, username)
   });
 }

@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { getArtistFromYTid } from '../../_lib/artistQueries';
+import { getArtistFromYTid } from '../../_lib/artistQueries.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Enable CORS for your Chrome extension

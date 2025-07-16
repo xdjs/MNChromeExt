@@ -6,6 +6,7 @@ export interface YTinfo {
     channel: string;
     description: string;
     tags: string[];
+    id: string;
 }
 
 export async function fetchYTInfo(videoId: string): Promise<YTinfo | null> {
@@ -19,10 +20,12 @@ export async function fetchYTInfo(videoId: string): Promise<YTinfo | null> {
     }
 
     const snip = data.items[0].snippet;
+    console.log(snip.channelId);
     return {
         title: snip.title,
         channel: snip.channelTitle,
         description: snip.description,
-        tags: snip.tags
+        tags: snip.tags,
+        id: snip.channelId
     };
 }

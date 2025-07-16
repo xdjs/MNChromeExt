@@ -1,5 +1,7 @@
 import { getVideoId } from "../backend/linkExtractors.js";
 import { fetchYTInfo } from "../backend/server/youtubeQueries.js";
+// @ts-ignore -- compiled file provides the export
+import { scrapeYTInfo } from "../backend/pageScraper";
 
 
 console.log('[YT-EXT] content script injected');
@@ -18,6 +20,9 @@ chrome.runtime.onMessage.addListener((req, _sender, sendResponse) => {
         console.error('[YT-EXT] Fetch error', err);
         sendResponse(null);
       });
+  }
+  if (req.type === 'SCRAPE_YT_INFO') {
+    sendResponse(scrapeYTInfo());
   }
   return true; // keep the messaging channel open
 });
