@@ -1,12 +1,27 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Popup Menu</title>
   <link rel="stylesheet" href="popup.css">
 </head>
-<body>
-  <div id="info">
-    <h3 id="title">Loading…</h3>
-    <p id="bio"></p>
+<body class="bg-neutral-900 p-2 flex items-center justify-center min-w-[300px] min-h-[200px]">
+  <!-- Card container -->
+  <div id="card" class="bg-white rounded-lg w-full max-w-[580px] p-6 flex gap-8">
+    <!-- Left column: artist name + bio -->
+    <div id="artist-info" class="flex-1">
+      <h3 id="title" class="text-xl font-semibold uppercase">Loading…</h3>
+      <p id="bio" class="mt-1 text-sm text-gray-600">Fetching bio…</p>
+    </div>
+
+    <!-- Right column: artist links -->
+    <div id="artist-links" class="flex-1">
+      <h4 id="links-title" class="text-sm uppercase tracking-wide text-gray-400 mb-4">Links</h4>
+      <ul id="links-list" class="space-y-4">
+        <!-- Links will be injected here -->
+      </ul>
+    </div>
   </div>
 
   <script type="module" src="src/frontend/popup/main.js"></script>
