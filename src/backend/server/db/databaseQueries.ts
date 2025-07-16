@@ -24,8 +24,9 @@ export async function getArtistFromYTid(userID: string) {
 }
 
 export async function getArtistFromYTUsername(Username: string) {
-    Username.toLowerCase();
-    Username.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    Username = Username.toLowerCase();
+    Username = Username.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    console.log(Username);
     try {
         const result = await db.query.artists.findFirst({where: eq(schema.artists.lcname, Username)});
     } catch (error) {
