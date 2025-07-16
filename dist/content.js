@@ -10,6 +10,7 @@
     for (const re of patterns) {
       const match = url.match(re);
       if (match) {
+        console.log(match[1]);
         return match[1];
       }
     }
@@ -26,12 +27,40 @@
       return null;
     }
     const snip = data.items[0].snippet;
+    console.log(snip.channelId);
     return {
       title: snip.title,
       channel: snip.channelTitle,
       description: snip.description,
-      tags: snip.tags
+      tags: snip.tags,
+      id: snip.channelId
     };
+  }
+
+  // src/backend/pageScraper.ts
+  function scrapeYTInfo() {
+    const title = document.querySelector("h1.title yt-formatted-string") || document.querySelector("ytd-watch-metadata h1");
+    const channelName = document.querySelector("#owner-name a") || document.querySelector("ytd-channel-name#channel-name a");
+    const ytDescription = document.querySelector("#description");
+    const ytUsername = document.querySelector('a.yt-simple-endpoint.style-scope.yt-formatted-string[href^="/@"]');
+    console.log("[YT-EXT] titleEl", title, "channelEl", channelName);
+    if (title) {
+      console.log("Title: ", title.textContent.trim());
+    }
+    if (channelName) {
+      console.log("Channel: ", channelName.textContent.trim());
+    }
+    if (channelName && title && ytDescription) {
+      console.log(ytUsername?.textContent?.trim());
+      return {
+        videoTitle: title.textContent.trim(),
+        channel: channelName.textContent.trim(),
+        description: ytDescription?.textContent.trim(),
+        username: ytUsername?.textContent.trim()
+      };
+    }
+    console.log("no info found");
+    return null;
   }
 
   // src/connections/listener.ts
@@ -47,6 +76,9 @@
         console.error("[YT-EXT] Fetch error", err);
         sendResponse(null);
       });
+    }
+    if (req.type === "SCRAPE_YT_INFO") {
+      sendResponse(scrapeYTInfo());
     }
     return true;
   });
