@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "tailwindcss -i src/styles/tailwind.css -o popup.css --minify --postcss",
+    "build:css": "npx tailwindcss -i src/styles/tailwind.css -o popup.css --minify --postcss",
     "build": "npm run build:css && node build.js",
     "watch": "node build.js --watch",
     "db:push": "drizzle-kit push:pg",
