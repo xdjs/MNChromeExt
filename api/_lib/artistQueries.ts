@@ -28,7 +28,7 @@ export async function getMainUrls(artist: any) {
 
 
     const urls = await getUrlMap();
-    const artistlinks: string[] = [];
+    const artistlinks: any[] = [];
     for (const platform of urls) {
         let artistUrl = platform.appStringFormat;
         const value = artist[platform.siteName];
@@ -37,7 +37,10 @@ export async function getMainUrls(artist: any) {
         }
         artistUrl = platform.appStringFormat.replace("%@", value);
         console.log(artistUrl);
-        artistlinks.push(artistUrl);
+        artistlinks.push({
+            label: platform.siteName,
+            url: artistUrl
+        });
     }
     return artistlinks;
 }
