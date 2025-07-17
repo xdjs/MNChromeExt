@@ -34,7 +34,7 @@ export function renderArtist(a){
           const linkWrapper = document.createElement('a');
           linkWrapper.href = l.url ?? l.href ?? '#';
           linkWrapper.target = '_blank'; // Open in new tab
-          linkWrapper.className = 'block hover:bg-gray-50 p-2 rounded transition-colors cursor-pointer';
+          linkWrapper.className = 'flex items-center gap-3 hover:bg-gray-50 p-2 rounded';
           
           const label = document.createElement('p');
           label.className = 'font-semibold uppercase text-sm text-blue-600 hover:text-blue-800';
@@ -45,13 +45,18 @@ export function renderArtist(a){
           url.textContent = l.url ?? l.href ?? '';
 
           const img = document.createElement('img');
-          img.src = l.img;
+          img.src = l.image;
           img.alt = 'Artist Photo'
-          img.className = 'w-16 h-16 rounded-full object-cover'; 
+          img.className = 'w-8 h-8 rounded-full object-cover flex-shrik-0'; 
 
-          linkWrapper.appendChild(label);
-          linkWrapper.appendChild(url);
-          linkWrapper.append(img);
+          const textContainer = document.createElement('div');
+          textContainer.className = 'flex-1 min-w-0';
+
+          textContainer.appendChild(label);
+          textContainer.appendChild(url);
+
+          linkWrapper.appendChild(img);
+          linkWrapper.appendChild(textContainer);
           li.appendChild(linkWrapper);
           linksListEl.appendChild(li);
         });
