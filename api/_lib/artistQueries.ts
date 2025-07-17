@@ -39,7 +39,8 @@ export async function getMainUrls(artist: any) {
         console.log(artistUrl);
         artistlinks.push({
             label: platform.siteName,
-            url: artistUrl
+            url: artistUrl,
+            image: platform.siteImage
         });
     }
     return artistlinks;
