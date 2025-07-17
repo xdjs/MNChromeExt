@@ -30,16 +30,29 @@ export function renderArtist(a){
         a.links.forEach(l => {
           const li = document.createElement('li');
 
+          // Create clickable link wrapper
+          const linkWrapper = document.createElement('a');
+          linkWrapper.href = l.url ?? l.href ?? '#';
+          linkWrapper.target = '_blank'; // Open in new tab
+          linkWrapper.className = 'block hover:bg-gray-50 p-2 rounded transition-colors cursor-pointer';
+          
           const label = document.createElement('p');
-          label.className = 'font-semibold uppercase text-sm';
+          label.className = 'font-semibold uppercase text-sm text-blue-600 hover:text-blue-800';
           label.textContent = l.label ?? l.title ?? 'Link';
 
           const url = document.createElement('p');
           url.className = 'text-sm text-gray-500 truncate';
           url.textContent = l.url ?? l.href ?? '';
 
-          li.appendChild(label);
-          li.appendChild(url);
+          const img = document.createElement('img');
+          img.src = l.img;
+          img.alt = 'Artist Photo'
+          img.className = 'w-16 h-16 rounded-full object-cover'; 
+
+          linkWrapper.appendChild(label);
+          linkWrapper.appendChild(url);
+          linkWrapper.append(img);
+          li.appendChild(linkWrapper);
           linksListEl.appendChild(li);
         });
       } else {
