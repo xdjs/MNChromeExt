@@ -9,7 +9,7 @@ export async function fetchArtist(info) {
   
   if (artist) {
     // Fetch links for this artist using the correct endpoint
-    const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(info.id)}`;
+    const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
     const linksResponse = await fetch(linksUrl);
     artist.links = linksResponse.ok ? await linksResponse.json() : [];
   }
@@ -25,7 +25,7 @@ export async function fetchArtistFromName(info) {
   
   if (artist) {
     // Fetch links for this artist using the correct endpoint  
-    const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id || info.channel)}`;
+    const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
     const linksResponse = await fetch(linksUrl);
     artist.links = linksResponse.ok ? await linksResponse.json() : [];
   }
