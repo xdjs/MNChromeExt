@@ -31,7 +31,7 @@ export async function getMainUrls(artist: any) {
     for (const platform of urls) {
         let artistUrl = platform.appStringFormat;
         const value = artist[platform.siteName];
-        if (!value) {
+        if (!value || artistUrl == "https://www.youtube.com/channel/%@") {
             continue;
         }
         artistUrl = platform.appStringFormat.replace("%@", value);
