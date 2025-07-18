@@ -4,8 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Popup Menu</title>
+  <link rel="icon" type="image/png" href="assets/mn-logo.png">
   <link rel="stylesheet" href="popup.css">
 </head>
+
+<div id="card" class="bg-white w-full max-w-[580px] p-6">
+  <!-- Logo header -->
+  <div class="flex items-center mb-4">
+    <img src="assets/mn-logo.png" alt="MN Logo" class="w-12 h-12 mr-2">
+    <span class="text-sm text-gray-500">MusicNerd</span>
+  </div>
+
+    <!-- Main content in flex layout -->
+    <div class="flex gap-8">
+
 <body class="flex items-center justify-center min-w-[600px] min-h-[500px] rounded-lg overflow-hidden">
   <!-- Card container -->
   <div id="card" class="bg-white w-full max-w-[580px] p-6 flex gap-8">
@@ -13,6 +25,7 @@
     <div id="artist-info" class="w-1/2">
       <h3 id="title" class="text-xl font-semibold uppercase">Loading…</h3>
       <p id="bio" class="mt-1 text-sm text-gray-600">Fetching bio…</p>
+      <a id="MN-link" class=""></a>
     </div>
 
     <!-- Right column: artist links -->
