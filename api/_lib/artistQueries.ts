@@ -26,7 +26,6 @@ export async function getUrlMap() {
 
 export async function getMainUrls(artist: any) {
 
-
     const urls = await getUrlMap();
     const artistlinks: any[] = [];
     for (const platform of urls) {
@@ -40,8 +39,11 @@ export async function getMainUrls(artist: any) {
         artistlinks.push({
             label: platform.siteName,
             url: artistUrl,
-            image: platform.siteImage
+            image: platform.siteImage,
+            order: platform.order // Include order for sorting
         });
     }
+    // Sort by order column (ascending)
+    artistlinks.sort((a, b) => a.order - b.order);
     return artistlinks;
 }
