@@ -11,9 +11,22 @@ export function renderArtist(a){
     const bioEl = document.getElementById('bio');
     const linksTitleEl = document.getElementById('links-title');
     const linksListEl  = document.getElementById('links-list');
+    const musicNerdEl = document.getElementById('MN-link');
 
     titleEl.textContent = a.name ?? 'Unknown';
     bioEl.textContent = a.bio ?? 'No Bio';
+
+
+    musicNerdEl.textContent = document.createElement('a');
+    musicNerdEl.href =  `https://www.musicnerd.xyz/artist/` + a.id;
+    musicNerdEl.className = 'flex items-center gap-3 hover:bg-gray-50 p-2 rounded';
+    musicNerdEl.target = '_blank';
+
+    const MNurl = document.createElement('p');
+          MNurl.className = 'text-sm text-gray-500 truncate';
+          MNurl.textContent = 'View on MusicNerd.xyz';
+
+    musicNerdEl.appendChild(MNurl);
 
     // Populate links header
     if (linksTitleEl) {
