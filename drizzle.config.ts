@@ -1,10 +1,14 @@
 import { defineConfig } from 'drizzle-kit';
+import fetch from 'node-fetch';
+import fs from 'fs';
+
+
 
 export default defineConfig({
-  schema: './src/backend/server/schema.ts',
+  schema: './src/backend/server/db/schema.ts',
   out: './drizzle',
-  driver: 'pg',
+  dialect: 'postgresql',
   dbCredentials: {
-    connectionString: process.env.SUPABASE_DB_URL as string,
+    url: process.env.SUPABASE_DB_CONNECTION as string,
   },
 }); 
