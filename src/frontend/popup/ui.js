@@ -11,26 +11,51 @@ export function renderArtist(a){
     const bioEl = document.getElementById('bio');
     const linksTitleEl = document.getElementById('links-title');
     const linksListEl  = document.getElementById('links-list');
+
     const musicNerdEl = document.getElementById('MN-link');
 
-    titleEl.textContent = a.name ?? 'Unknown';
-    bioEl.textContent = a.bio ?? 'No Bio';
+        musicNerdEl.textContent = document.createElement('a');
+        if (a.id) {
+            musicNerdEl.href =  `https://www.musicnerd.xyz/artist/` + a.id;
+        }
+        else {
+            musicNerdEl.href =  `https://www.musicnerd.xyz`;
+        }
+        musicNerdEl.className = 'flex items-center gap-3 hover:bg-gray-50 p-2 rounded';
+        musicNerdEl.target = '_blank';
+    
+        const MNurl = document.createElement('p');
+              MNurl.className = 'text-sm text-gray-500 truncate';
+              if (a.id) {
+                MNurl.textContent = 'View on MusicNerd.xyz';
+              }
+              else {
+                MNurl.textContent = 'Add them on MusicNerd.xyz';
+              }
+              
+    
+        musicNerdEl.appendChild(MNurl);
+    
+
+    
+
+    titleEl.textContent = a.name ?? "Sorry, we don't know this artist!";
+    bioEl.textContent = a.bio ?? "No bio Available";
+    if (!a.id) {
+        bioEl.textContent = "";
+    }
 
 
-    musicNerdEl.textContent = document.createElement('a');
-    musicNerdEl.href =  `https://www.musicnerd.xyz/artist/` + a.id;
-    musicNerdEl.className = 'flex items-center gap-3 hover:bg-gray-50 p-2 rounded';
-    musicNerdEl.target = '_blank';
+    
 
-    const MNurl = document.createElement('p');
-          MNurl.className = 'text-sm text-gray-500 truncate';
-          MNurl.textContent = 'View on MusicNerd.xyz';
-
-    musicNerdEl.appendChild(MNurl);
-
-    // Populate links header
+    // Populate links header - hide if no artist ID
     if (linksTitleEl) {
-      linksTitleEl.textContent = `${a.name ?? 'Artist'}'s Links`;
+      if (a.id) {
+        linksTitleEl.textContent = `${a.name ?? 'Artist'}'s Links`;
+        linksTitleEl.style.display = 'block';
+      } else {
+        linksTitleEl.style.display = 'none';
+      }
     }
 
     // Clear previous list items
@@ -73,10 +98,16 @@ export function renderArtist(a){
           li.appendChild(linkWrapper);
           linksListEl.appendChild(li);
         });
-      } else {
+      } else if (a.id) {
         const li = document.createElement('li');
         li.className = 'text-gray-400 text-sm';
         li.textContent = 'No links available';
+        linksListEl.appendChild(li);
+      }
+      else {
+        const li = document.createElement('li');
+        li.className = 'text-gray-400 text-sm';
+        li.textContent = '';
         linksListEl.appendChild(li);
       }
     }
