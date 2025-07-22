@@ -1,19 +1,38 @@
-import { fetchArtist, fetchArtistFromName}   from './api.js';
+import { fetchArtist, fetchArtistFromName, extractArtistFromTitle}   from './api.js';
 import { renderArtist }  from './ui.js';
-import { getYTInfo, scrapeYTInfo }     from './ytInfo.js';
+import { getYTInfo, scrapeYTInfo  }     from './ytInfo.js';
 
 
 document.addEventListener('DOMContentLoaded', async () => {
   const [tab] = await chrome.tabs.query({active:true,currentWindow:true});
-  const info   = await getYTInfo(tab.id);         // separate module
-  var artist = info && await fetchArtist(info); // separate module
-  if (!artist || artist.error) {
-    console.log("could not find artist using channel ID, falling back to Name...") 
-    const scrape = await scrapeYTInfo(tab.id);
-    console.log(`Scrape: ${scrape.channel}`);
-    artist = info && await fetchArtistFromName(scrape);
-    console.log(`Scrape: ${artist}`);
+  
+  // Check if we're on a YouTube page
+  if (!tab.url.includes('youtube.com')) {
+    renderArtist(null); // Show "not on YouTube" message
+    return;
   }
   
-  renderArtist(artist);                           // separate module
+  const info = await getYTInfo(tab.id);
+  var artist = info && await fetchArtist(info);
+  
+  if (!artist || artist.error) {
+    console.log("could not find artist using channel ID, falling back to AI...") 
+    // Check if info and info.title exist before using
+    if (info && info.title) {
+      const name = await extractArtistFromTitle(info.title);
+      if (name) {
+        artist = await fetchArtistFromName({channel: name});
+      }
+    }
+  }
+
+  if (!artist || artist.error) {
+    console.log("could not find artist using channel AI, falling back to Name...") 
+    const scrape = await scrapeYTInfo(tab.id);
+    if (scrape) {
+      artist = await fetchArtistFromName(scrape);
+    }
+  }
+  
+  renderArtist(artist);
 });
