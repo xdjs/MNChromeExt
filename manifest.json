@@ -15,8 +15,11 @@
   },
   "content_scripts": [
   {
-    "matches": ["*://www.youtube.com/*"],
-    "js": ["dist/content.js"],  
+    "matches": [
+      "*://www.youtube.com/*",
+      "*://music.youtube.com/*"  
+    ],
+    "js": ["dist/content.js"],
     "run_at": "document_idle"
   }
 ],

@@ -1,4 +1,4 @@
-const API = 'https://mn-chrome-ext-git-max-openai-spike-musicnerd.vercel.app';
+const API = 'https://mn-chrome-ext.vercel.app';
 
 
 
