@@ -5,7 +5,9 @@
     const patterns = [
       /v=([^&]+)/,
       /youtu\.be\/([^?&]+)/,
-      /embed\/([^?&]+)/
+      /embed\/([^?&]+)/,
+      /music\.youtube\.com\/watch\?v=([^&]+)/
+      // YouTube Music: ?v=ABC123
     ];
     for (const re of patterns) {
       const match = url.match(re);
@@ -39,8 +41,15 @@
 
   // src/backend/pageScraper.ts
   function scrapeYTInfo() {
-    const title = document.querySelector("h1.title yt-formatted-string") || document.querySelector("ytd-watch-metadata h1");
-    const channelName = document.querySelector("#owner-name a") || document.querySelector("ytd-channel-name#channel-name a");
+    let title;
+    let channelName;
+    if (location.hostname === "music.youtube.com") {
+      title = document.querySelector(".title.ytmusic-player-bar");
+      channelName = document.querySelector(".byline.ytmusic-player-bar a");
+    } else {
+      title = document.querySelector("h1.title yt-formatted-string") || document.querySelector("ytd-watch-metadata h1");
+      channelName = document.querySelector("#owner-name a") || document.querySelector("ytd-channel-name#channel-name a");
+    }
     const ytDescription = document.querySelector("#description");
     const ytUsername = document.querySelector('a.yt-simple-endpoint.style-scope.yt-formatted-string[href^="/@"]');
     console.log("[YT-EXT] titleEl", title, "channelEl", channelName);
