@@ -1,4 +1,4 @@
-const API = process.env.MUSICNERD_API_URL;
+
 
 
 export function renderArtist(a){

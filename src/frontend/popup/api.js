@@ -1,4 +1,4 @@
-const API = process.env.MUSICNERD_API_URL
+const API = 'https://mn-chrome-ext-git-max-openai-spike-musicnerd.vercel.app';
 
 
 
