@@ -1,6 +1,6 @@
-import { fetchArtist, fetchArtistFromName}   from './api.js';
+import { fetchArtist, fetchArtistFromName, extractArtistFromTitle}   from './api.js';
 import { renderArtist }  from './ui.js';
-import { getYTInfo, scrapeYTInfo }     from './ytInfo.js';
+import { getYTInfo, scrapeYTInfo  }     from './ytInfo.js';
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -8,11 +8,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   const info   = await getYTInfo(tab.id);         // separate module
   var artist = info && await fetchArtist(info); // separate module
   if (!artist || artist.error) {
-    console.log("could not find artist using channel ID, falling back to Name...") 
+    console.log("could not find artist using channel ID, falling back to AI...") 
+    const name = await extractArtistFromTitle(info.title);
+    if (name) {
+        artist = await fetchArtistFromName({channel: name});
+    }
+  }
+
+  if (!artist || artist.error) {
+    console.log("could not find artist using channel AI, falling back to Name...") 
     const scrape = await scrapeYTInfo(tab.id);
-    console.log(`Scrape: ${scrape.channel}`);
-    artist = info && await fetchArtistFromName(scrape);
-    console.log(`Scrape: ${artist}`);
+    artist = await fetchArtistFromName(scrape);
   }
   
   renderArtist(artist);                           // separate module
