@@ -1,4 +1,5 @@
-const API = 'https://mn-chrome-ext.vercel.app/';
+const API = process.env.MUSICNERD_API_URL
+
 
 
 export async function fetchArtist(info) {
@@ -31,4 +32,17 @@ export async function fetchArtistFromName(info) {
   }
   
   return artist;
+}
+
+export async function extractArtistFromTitle(title) {
+  const url = `${API}/api/openai/extract-artist`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ title })
+  });
+
+  if (!response.ok) return null;
+  const data = await response.json();
+  return data.artist; // Returns string or null
 }

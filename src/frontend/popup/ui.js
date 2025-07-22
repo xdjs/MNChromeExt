@@ -1,4 +1,4 @@
-const API = 'https://mn-chrome-ext.vercel.app/';
+const API = process.env.MUSICNERD_API_URL;
 
 
 export function renderArtist(a){
