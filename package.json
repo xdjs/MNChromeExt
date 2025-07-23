@@ -9,7 +9,11 @@
     "build:css": "npx tailwindcss -i src/styles/tailwind.css -o popup.css --minify --postcss",
     "build": "node build.js",
     "build:local": "npm run build:css && node build.js",
+    "build:prod": "npm run build:css && node build.js --production",
     "watch": "node build.js --watch",
+    "package": "npm run build:prod && npm run package:zip",
+    "package:zip": "powershell \"Compress-Archive -Path manifest.json,popup.html,popup.css,options.html,assets,dist,src/background.js -DestinationPath extension.zip -Force\" && echo \"📦 Extension packaged successfully!\"",
+    "clean": "powershell \"if (Test-Path dist) { Remove-Item -Recurse -Force dist }; if (Test-Path extension.zip) { Remove-Item extension.zip }\"",
     "db:push": "drizzle-kit push:pg",
     "db:generate": "drizzle-kit generate:pg"
   },
