@@ -3,6 +3,7 @@ export function getVideoId(url: string): string | null {
         /v=([^&]+)/,
         /youtu\.be\/([^?&]+)/,
         /embed\/([^?&]+)/,
+        /music\.youtube\.com\/watch\?v=([^&]+)/, // YouTube Music: ?v=ABC123
     ];
     for (const re of patterns) {
         const match = url.match(re);

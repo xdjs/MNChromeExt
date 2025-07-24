@@ -1,4 +1,4 @@
-const API = 'https://mn-chrome-ext.vercel.app/';
+
 
 
 export function renderArtist(a){

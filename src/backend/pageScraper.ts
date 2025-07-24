@@ -10,11 +10,26 @@ export interface youTubeInfo {
 
 export function scrapeYTInfo(): youTubeInfo | null {
     // Fallback selectors for both old and new YouTube layouts
-    const title = document.querySelector('h1.title yt-formatted-string')
+    
+    let title: Element | null;
+
+    let channelName: Element | null;
+
+    if (location.hostname === 'music.youtube.com') {
+        // YouTube Music selectors
+        title = document.querySelector('.title.ytmusic-player-bar');
+        channelName = document.querySelector('.byline.ytmusic-player-bar a');
+    // ... YouTube Music specific DOM selectors
+    }
+
+    else {
+        title = document.querySelector('h1.title yt-formatted-string')
         || document.querySelector('ytd-watch-metadata h1');
 
-    const channelName = document.querySelector('#owner-name a')
+        channelName = document.querySelector('#owner-name a')
         || document.querySelector('ytd-channel-name#channel-name a');
+    }
+    
 
     const ytDescription = document.querySelector('#description');
 
