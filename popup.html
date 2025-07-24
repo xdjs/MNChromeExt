@@ -8,32 +8,38 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 
-<div id="card" class="bg-white w-full max-w-[580px] p-6">
-  <!-- Logo header -->
-  <div class="flex items-center mb-4">
-    <img src="assets/mn-logo.png" alt="MN Logo" class="w-12 h-12 mr-2">
-    <span class="text-sm text-gray-500">MusicNerd</span>
-  </div>
+<body class="flex items-center justify-center min-w-[600px] min-h-[500px] rounded-lg overflow-hidden">
+  <!-- Card container -->
+  <div id="card" class="bg-white w-full max-w-[580px] p-6">
+    <!-- Logo header -->
+    <div class="flex items-center mb-4">
+      <img src="assets/mn-logo.png" alt="MN Logo" class="w-12 h-12 mr-2">
+      <span class="text-sm text-gray-500">MusicNerd</span>
+    </div>
+
+    <!-- Artist tabs (hidden by default) -->
+    <div id="artist-tabs" class="mb-4" style="display: none;">
+      <div id="tabs-list" class="flex border-b space-x-1">
+        <!-- Tabs will be generated here -->
+      </div>
+    </div>
 
     <!-- Main content in flex layout -->
     <div class="flex gap-8">
+      <!-- Left column: artist name + bio -->
+      <div id="artist-info" class="w-1/2">
+        <h3 id="title" class="text-xl font-semibold uppercase">Loading…</h3>
+        <p id="bio" class="mt-1 text-sm text-gray-600">Fetching bio…</p>
+        <a id="MN-link" class=""></a>
+      </div>
 
-<body class="flex items-center justify-center min-w-[600px] min-h-[500px] rounded-lg overflow-hidden">
-  <!-- Card container -->
-  <div id="card" class="bg-white w-full max-w-[580px] p-6 flex gap-8">
-    <!-- Left column: artist name + bio -->
-    <div id="artist-info" class="w-1/2">
-      <h3 id="title" class="text-xl font-semibold uppercase">Loading…</h3>
-      <p id="bio" class="mt-1 text-sm text-gray-600">Fetching bio…</p>
-      <a id="MN-link" class=""></a>
-    </div>
-
-    <!-- Right column: artist links -->
-    <div id="artist-links" class="w-1/2">
-      <h4 id="links-title" class="text-sm uppercase tracking-wide text-gray-400 mb-4">Links</h4>
-      <ul id="links-list" class="space-y-4">
-        
-      </ul>
+      <!-- Right column: artist links -->
+      <div id="artist-links" class="w-1/2">
+        <h4 id="links-title" class="text-sm uppercase tracking-wide text-gray-400 mb-4">Links</h4>
+        <ul id="links-list" class="space-y-4">
+          
+        </ul>
+      </div>
     </div>
   </div>
 
