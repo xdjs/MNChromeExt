@@ -10,12 +10,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!id) return res.status(400).json({ error: 'Missing ID' });
 
     try {
-
         const a = await getArtistFromId(id);
-        if (a) {
-            let urls = await getMainUrls(a);
-            res.status(200).json(urls ?? {error: 'not found'});
-        } 
+        if (!a) {
+            return res.status(404).json({ error: 'Artist not found' });
+        }
+        
+        const urls = await getMainUrls(a);
+        res.status(200).json(urls || []);
     } catch (err) {
         console.error('[api] getMainUrls', err);
         res.status(500).json({ error: 'Internal error' });

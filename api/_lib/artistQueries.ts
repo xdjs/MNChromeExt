@@ -27,25 +27,41 @@ export async function getUrlMap() {
 }
 
 export async function getMainUrls(artist: any) {
+    if (!artist) {
+        return [];
+    }
 
     const urls = await getUrlMap();
     const artistlinks: any[] = [];
+    
     for (const platform of urls) {
-        let artistUrl = platform.appStringFormat;
-        const value = artist[platform.siteName];
-        if (!value || artistUrl == "https://www.youtube.com/channel/%@") {
+        if (!platform?.appStringFormat || !platform?.siteName) {
             continue;
         }
-        artistUrl = platform.appStringFormat.replace("%@", value);
-        console.log(artistUrl);
-        artistlinks.push({
-            label: platform.siteName,
-            url: artistUrl,
-            image: platform.siteImage,
-            order: platform.order // Include order for sorting
-        });
+        
+        let artistUrl = platform.appStringFormat;
+        const value = artist[platform.siteName];
+        
+        if (!value || artistUrl === "https://www.youtube.com/channel/%@") {
+            continue;
+        }
+        
+        try {
+            artistUrl = platform.appStringFormat.replace("%@", value);
+            console.log(artistUrl);
+            artistlinks.push({
+                label: platform.siteName,
+                url: artistUrl,
+                image: platform.siteImage,
+                order: platform.order || 0 // Default order if missing
+            });
+        } catch (err) {
+            console.error(`Error processing platform ${platform.siteName}:`, err);
+            continue; // Skip this platform and continue with others
+        }
     }
+    
     // Sort by order column (ascending)
-    artistlinks.sort((a, b) => a.order - b.order);
+    artistlinks.sort((a, b) => (a.order || 0) - (b.order || 0));
     return artistlinks;
 }
