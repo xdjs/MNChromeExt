@@ -10,7 +10,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!username) return res.status(400).json({ error: 'Missing username' });
 
   try {
-    const artist = await getArtistFromYTUsername(decodeURIComponent(username));
+    const artist = await getArtistFromYTUsername(decodeURIComponent(username).replace(/\s/g, ''));
     res.status(200).json(artist ?? { error: 'Not found' });
   } catch (err) {
     console.error('[api] getArtistFromYTUsername', err);
