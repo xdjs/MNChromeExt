@@ -10,7 +10,7 @@ export function getArtistFromYTid(ytId: string) {
 
 export function getArtistFromYTUsername(username: string) {
   return db.query.artists.findFirst({
-    where: eq(artists.name, username)
+    where: eq(artists.lcname, username.toLowerCase())
   });
 }
 
