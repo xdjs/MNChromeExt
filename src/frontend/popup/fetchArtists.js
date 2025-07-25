@@ -1,39 +1,41 @@
 import { fetchArtist, fetchArtistFromName, extractArtistFromTitle, extractMultipleArtistsFromTitle}   from './api.js';
-import { renderArtist }  from './ui.js';
 import { getYTInfo, scrapeYTInfo  }     from './ytInfo.js';
 import { hasCollaborationKeywords } from './collabs.js';
-import { channel } from 'diagnostics_channel';
 
 export async function fetchMultipleArtists(tabId) {
-    const info = await getYTInfo(tab.id);
+    const info = await getYTInfo(tabId);
     let artists = [];
   
-    if (info.id) {
+    if (info?.id) {
       const artist = await fetchArtist(info);
-      if (!artist.error) {
+      if (artist && !artist.error && artist.id) {
           artists.push({...artist, isPrimary: true});
-      }
       
-      if (hasCollaborationKeywords(info.title)) {
-          const allArtistNames = await extractMultipleArtistsFromTitle(info.title);
-          const newNames = allArtistNames.filter(name =>
-              name.toLowerCase() !== primaryArtist.name.toLowerCase()
-          );
+          if (hasCollaborationKeywords(info.title)) {
+              const allArtistNames = await extractMultipleArtistsFromTitle(info.title);
+              const newNames = allArtistNames.filter(name =>
+                  name.toLowerCase() !== artist.name.toLowerCase()
+              );
   
-          const newArtists = await Promise.all (
-              newNames.map(async name => {
-                  const artist = await fetchArtistFromName({channel: name});
-                  return artist && !artist.error ? {...artist, isPrimary: false } : null;
-              })
-          );
+              const newArtists = await Promise.all (
+                  newNames.map(async name => {
+                      const artist = await fetchArtistFromName({channel: name});
+                      return artist && !artist.error ? {...artist, isPrimary: false } : null;
+                  })
+              );
   
-          artists.push(...newArtists.filter(Boolean));
-      }   
-      return artists;
-  
+              artists.push(...newArtists.filter(Boolean));
+          }   
+          
+          // Only return early if we found at least one artist
+          if (artists.length > 0) {
+              return artists;
+          }
+      }
     }
     // Step 3: Fallback - no channel match, try multi-artist extraction
-  if (info?.title) {
+  if (info?.title || artists.length === 0) {
+    console.log("falling back to AI")
     const artistNames = await extractMultipleArtistsFromTitle(info.title);
     const foundArtists = await Promise.all(
       artistNames.map(async name => {

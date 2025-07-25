@@ -1,8 +1,5 @@
-import { fetchArtist, fetchArtistFromName, extractArtistFromTitle, extractMultipleArtistsFromTitle}   from './api.js';
-import { renderArtist }  from './ui.js';
-import { getYTInfo, scrapeYTInfo  }     from './ytInfo.js';
-import { hasCollaborationKeywords } from './collabs.js';
-import { channel } from 'diagnostics_channel';
+
+import { renderArtists } from './multi-ui.js';
 import { fetchMultipleArtists } from './fetchArtists.js';
 
 
@@ -11,7 +8,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Check if we're on a YouTube page
   if (!tab.url.includes('youtube.com') && !tab.url.includes('music.youtube.com')) {
-    renderArtist([]); // Show "not on YouTube" message
+    renderArtists([]); // Show "not on YouTube" message
     return;
   }
 
