@@ -1,5 +1,5 @@
-import { index } from "drizzle-orm/mysql-core";
-import { renderArtist } from "./ui";
+
+import { renderArtist } from "./ui.js";
 
 let artistList = [];
 
