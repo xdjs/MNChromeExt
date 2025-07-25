@@ -1,4 +1,4 @@
-import { fetchArtist, fetchArtistFromName, extractArtistFromTitle, extractMultipleArtistsFromTitle}   from './api.js';
+import { fetchArtist, fetchArtistFromName, extractArtistFromTitle, extractMultipleArtistsFromTitle, fetchMultipleArtistsByNames}   from './api.js';
 import { getYTInfo, scrapeYTInfo  }     from './ytInfo.js';
 import { hasCollaborationKeywords } from './collabs.js';
 
@@ -17,14 +17,14 @@ export async function fetchMultipleArtists(tabId) {
                   name.toLowerCase() !== artist.name.toLowerCase()
               );
   
-              const newArtists = await Promise.all (
-                  newNames.map(async name => {
-                      const artist = await fetchArtistFromName({channel: name});
-                      return artist && !artist.error ? {...artist, isPrimary: false } : null;
-                  })
-              );
-  
-              artists.push(...newArtists.filter(Boolean));
+              if (newNames.length > 0) {
+                  const newArtists = await fetchMultipleArtistsByNames(newNames);
+                  const validArtists = newArtists
+                      .filter(artist => artist && !artist.error && artist.id)
+                      .map(artist => ({...artist, isPrimary: false}));
+                  
+                  artists.push(...validArtists);
+              }
           }   
           
           // Only return early if we found at least one artist
@@ -38,13 +38,15 @@ export async function fetchMultipleArtists(tabId) {
     console.log("falling back to AI")
     const artistNames = await extractMultipleArtistsFromTitle(info.title);
     console.log(artistNames);
-    const foundArtists = await Promise.all(
-      artistNames.map(async name => {
-        const artist = await fetchArtistFromName({channel: name});
-        return artist && !artist.error ? { ...artist, isPrimary: false } : null;
-      })
-    );
-    artists.push(...foundArtists.filter(Boolean));
+    
+    if (artistNames.length > 0) {
+      const foundArtists = await fetchMultipleArtistsByNames(artistNames);
+      const validArtists = foundArtists
+        .filter(artist => artist && !artist.error && artist.id)
+        .map(artist => ({ ...artist, isPrimary: false }));
+      
+      artists.push(...validArtists);
+    }
   }
   
   // Step 4: Final fallback to DOM scraping (single artist)

@@ -78,3 +78,27 @@ export async function extractMultipleArtistsFromTitle(title) {
   const data = await response.json();
   return data.artists || []; // Returns array of strings
 }
+
+export async function fetchMultipleArtistsByNames(artistNames) {
+  if (!artistNames || artistNames.length === 0) return [];
+
+  console.log('fetchMultipleArtistsByNames called with:', artistNames);
+  
+  const url = `${API}/api/artist/batch`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ usernames: artistNames })
+  });
+
+  if (!response.ok) {
+    console.error('Batch artist fetch failed:', response.status, response.statusText);
+    return [];
+  }
+
+  const data = await response.json();
+  console.log('Batch artist API response:', data);
+  
+  // Return array of artists (some may be null for not found)
+  return data.artists || [];
+}
