@@ -37,6 +37,7 @@ export async function fetchMultipleArtists(tabId) {
   if (info?.title || artists.length === 0) {
     console.log("falling back to AI")
     const artistNames = await extractMultipleArtistsFromTitle(info.title);
+    console.log(artistNames);
     const foundArtists = await Promise.all(
       artistNames.map(async name => {
         const artist = await fetchArtistFromName({channel: name});
