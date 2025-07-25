@@ -2,17 +2,14 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import {eq} from 'drizzle-orm';
 import postgres from 'postgres';
 import * as schema from './schema.js';
-import { error } from 'console';
 
-const SUPABASE_DB_CONNECTION = process.env.SUPABASE_DB_CONNECTION as string;
+const client = postgres(process.env.SUPABASE_DB_CONNECTION!, {
+  prepare: false,
+  idle_timeout: 0,     // good for serverless
+  max_lifetime: 15_000
+});
 
-        
-const connectionString = SUPABASE_DB_CONNECTION
-
-// Disable prefetch as it is not supported for "Transaction" pool mode 
-const client = postgres(connectionString, { prepare: false })
-
-export const db = drizzle(client, {schema});
+export const db = drizzle(client, { schema });
 
 export async function getArtistFromYTid(userID: string) {
     try {
@@ -29,8 +26,10 @@ export async function getArtistFromYTUsername(Username: string) {
     console.log(Username);
     try {
         const result = await db.query.artists.findFirst({where: eq(schema.artists.lcname, Username)});
+        return result;
     } catch (error) {
-        console.error(`Error fecthing artist my Username: `, error);
+        console.error(`Error fetching artist by Username: `, error);
+        return null;
     }
 }
 
