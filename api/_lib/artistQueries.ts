@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { db } from './db.js';
 import { artists, urlmap } from '../../src/backend/server/db/schema.js';
+import { use } from 'express/lib/application.js';
 
 export function getArtistFromYTid(ytId: string) {
   return db.query.artists.findFirst({
@@ -9,6 +10,7 @@ export function getArtistFromYTid(ytId: string) {
 }
 
 export function getArtistFromYTUsername(username: string) {
+    console.log(username);
   return db.query.artists.findFirst({
     where: eq(artists.lcname, username.toLowerCase())
   });
