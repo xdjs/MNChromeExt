@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   const artists = await fetchMultipleArtists(tab.id);
+  console.log("rendering multiple artists")
   renderArtists(artists);
 
 });

@@ -6,22 +6,26 @@ let artistList = [];
 let activeArtistIndex = 0;
 
 export function renderArtists(artists) {
+    console.log('renderArtists called with:', artists);
     artistList = artists;
 
     // Handle edge cases
   if (!artists || artists.length === 0) {
+    console.log('No artists found, showing error message');
     document.body.textContent = 'Artist not found';
     return;
   }
   
   // Single artist - use existing UI
   if (artists.length === 1) {
+    console.log('Single artist detected, using regular UI');
     hideArtistTabs();
     renderArtist(artists[0]);
     return;
   }
   
   // Multiple artists - show tab interface
+  console.log('Multiple artists detected, showing tabs');
   showArtistTabs(artists);
   renderActiveArtist();
 }
@@ -46,7 +50,7 @@ function showArtistTabs(artists) {
         tabsList.appendChild(tab);
     });
 
-    tabsContainer.style.display = 'none';
+    tabsContainer.style.display = 'block';
 }
 
 function hideArtistTabs() {
@@ -76,7 +80,7 @@ function updateTabStyles() {
 }
 
 function renderActiveArtist() {
-    const activeArtist = currentArtists[activeArtistIndex];
+    const activeArtist = artistList[activeArtistIndex];
     if (activeArtist) {
       renderArtist(activeArtist);
     }
@@ -84,11 +88,11 @@ function renderActiveArtist() {
   
 
   document.addEventListener('keydown', (e) => {
-    if (currentArtists.length <= 1) return;
+    if (artistList.length <= 1) return;
     
     if (e.key === 'ArrowLeft' && activeArtistIndex > 0) {
       switchToArtist(activeArtistIndex - 1);
-    } else if (e.key === 'ArrowRight' && activeArtistIndex < currentArtists.length - 1) {
+    } else if (e.key === 'ArrowRight' && activeArtistIndex < artistList.length - 1) {
       switchToArtist(activeArtistIndex + 1);
     }
   });
