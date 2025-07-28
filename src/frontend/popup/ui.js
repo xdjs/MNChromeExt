@@ -77,7 +77,7 @@ export function renderArtist(a){
 
           const url = document.createElement('p');
           url.className = 'text-sm text-gray-500 truncate';
-          if (l.platformTypeList && l.platformTypeList.includes('social')) {
+          if (l.platform_type_list && l.platform_type_list.includes('social')) {
             url.textContent = a[l.label] ?? l.url ?? l.href ?? '';
           }
           else {
