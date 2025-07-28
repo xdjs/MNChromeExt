@@ -1,6 +1,3 @@
-
-
-
 export function renderArtist(a){
     
     console.log(a);
@@ -80,7 +77,12 @@ export function renderArtist(a){
 
           const url = document.createElement('p');
           url.className = 'text-sm text-gray-500 truncate';
-          url.textContent = l.url ?? l.href ?? '';
+          if (l.platformTypeList && l.platformTypeList.includes('social')) {
+            url.textContent = a[l.label] ?? l.url ?? l.href ?? '';
+          }
+          else {
+            url.textContent = '';
+          }
 
           const img = document.createElement('img');
           img.src = l.image;
