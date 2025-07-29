@@ -1,6 +1,7 @@
 
 import { renderArtists } from './multi-ui.js';
-import { fetchMultipleArtists } from './fetchArtists.js';
+import { fetchMultipleArtists, fetchArtistsMediaSession } from './fetchArtists.js';
+
 
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -8,7 +9,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // Check if we're on a YouTube page
   if (!tab.url.includes('youtube.com') && !tab.url.includes('music.youtube.com')) {
-    renderArtists([]); // Show "not on YouTube" message
+    const artists = await fetchArtistsMediaSession();
+    renderArtists(artists); // Show "not on YouTube" message
     return;
   }
 

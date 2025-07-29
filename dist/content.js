@@ -72,6 +72,41 @@
     return null;
   }
 
+  // src/backend/mediaSession.ts
+  function detectMediaSession() {
+    if (!("mediaSession" in navigator)) {
+      console.log("Media Session API not supported");
+      return null;
+    }
+    const data = navigator.mediaSession.metadata;
+    const playbackState = navigator.mediaSession.playbackState;
+    console.log("Media Session Debug:", {
+      metadata: data,
+      playbackState,
+      hasMetadata: !!data,
+      url: window.location.href
+    });
+    if (!data) {
+      console.log("No media session metadata available");
+      return null;
+    }
+    if (!data.title && !data.artist) {
+      console.log("No useful media session data (no title or artist)");
+      return null;
+    }
+    return {
+      title: data.title || "",
+      channel: data.artist || "",
+      // Maps artist to channel for consistency with YouTube data
+      album: data.album || "",
+      source: "mediaSession",
+      playbackState,
+      url: window.location.href,
+      domain: window.location.hostname
+    };
+  }
+
+
   // src/connections/listener.ts
   console.log("[YT-EXT] content script injected");
   chrome.runtime.onMessage.addListener((req, _sender, sendResponse) => {
@@ -91,5 +126,12 @@
     }
     return true;
   });
+
+  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "checkMediaSession") {
+      sendResponse(detectMediaSession());
+    }
+  });
+
 })();
 //# sourceMappingURL=content.js.map

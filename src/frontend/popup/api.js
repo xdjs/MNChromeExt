@@ -102,3 +102,4 @@ export async function fetchMultipleArtistsByNames(artistNames) {
   // Return array of artists (some may be null for not found)
   return data.artists || [];
 }
+
