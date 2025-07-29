@@ -106,6 +106,7 @@
     };
   }
 
+
   // src/connections/listener.ts
   console.log("[YT-EXT] content script injected");
   chrome.runtime.onMessage.addListener((req, _sender, sendResponse) => {
@@ -125,10 +126,12 @@
     }
     return true;
   });
+
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "checkMediaSession") {
       sendResponse(detectMediaSession());
     }
   });
+
 })();
 //# sourceMappingURL=content.js.map

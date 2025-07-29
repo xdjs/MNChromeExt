@@ -52,7 +52,8 @@ export async function getMainUrls(artist: any) {
                 label: platform.siteName,
                 url: artistUrl,
                 image: platform.siteImage,
-                order: platform.order || 0 // Default order if missing
+                order: platform.order || 0, // Default order if missing
+                platform_type_list: platform.platformTypeList
             });
         } catch (err) {
             console.error(`Error processing platform ${platform.siteName}:`, err);
