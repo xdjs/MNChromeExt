@@ -17,15 +17,12 @@
     "service_worker": "background.js"
   },
   "content_scripts": [
-    {
-      "matches": [
-        "*://www.youtube.com/*",
-        "*://music.youtube.com/*"  
-      ],
-      "js": ["dist/content.js"],
-      "run_at": "document_idle"
-    }
-  ],
+     {
+       "matches": ["<all_urls>"],
+       "js": ["dist/content.js"],
+       "run_at": "document_idle"
+     }
+   ],
   "options_page": "options.html",
   "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": [
