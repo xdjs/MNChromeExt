@@ -86,18 +86,17 @@
       hasMetadata: !!data,
       url: window.location.href
     });
-    if (!data) {
-      console.log("No media session metadata available");
+    if (playbackState === "paused") {
       return null;
     }
-    if (!data.title && !data.artist) {
+    if (!data) {
       console.log("No useful media session data (no title or artist)");
       return null;
     }
     return {
       title: data.title || "",
       channel: data.artist || "",
-      // Maps artist to channel for consistency with YouTube data
+      // Fixed: was 'channel'
       album: data.album || "",
       source: "mediaSession",
       playbackState,
@@ -105,7 +104,6 @@
       domain: window.location.hostname
     };
   }
-
 
   // src/connections/listener.ts
   console.log("[YT-EXT] content script injected");
@@ -126,12 +124,10 @@
     }
     return true;
   });
-
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "checkMediaSession") {
       sendResponse(detectMediaSession());
     }
   });
-
 })();
 //# sourceMappingURL=content.js.map
