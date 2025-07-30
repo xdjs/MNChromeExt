@@ -53,12 +53,18 @@ export async function fetchArtistFromName(info) {
   return artist;
 }
 
-export async function extractArtistFromTitle(title) {
+export async function extractArtistFromTitle(titleOrData) {
   const url = `${API}/api/openai/extract-artist`;
+  
+  // Support both legacy title string and new data object
+  const requestBody = typeof titleOrData === 'string' 
+    ? { title: titleOrData }
+    : { data: titleOrData };
+  
   const response = await fetch(url, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ title })
+    body: JSON.stringify(requestBody)
   });
 
   if (!response.ok) return null;
@@ -66,12 +72,18 @@ export async function extractArtistFromTitle(title) {
   return data.artist; // Returns string or null
 }
 
-export async function extractMultipleArtistsFromTitle(title) {
+export async function extractMultipleArtistsFromTitle(titleOrData) {
   const url = `${API}/api/openai/extract-multiple-artists`;
+  
+  // Support both legacy title string and new data object
+  const requestBody = typeof titleOrData === 'string' 
+    ? { title: titleOrData }
+    : { data: titleOrData };
+  
   const response = await fetch(url, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ title })
+    body: JSON.stringify(requestBody)
   });
 
   if (!response.ok) return [];
