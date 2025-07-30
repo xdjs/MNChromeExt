@@ -4,28 +4,31 @@
   "version": "1.0.0",
   "description": "A Chrome Extension that looks at what the user is playing and finds info from the MusicNerd Database to display in a popup",
   "icons": {
-    "48": "assets/mn-logo.png"
+    "16": "assets/mn-logo-16.png",
+    "32": "assets/mn-logo-32.png", 
+    "48": "assets/mn-logo-48.png",
+    "128": "assets/mn-logo-128.png"
   },
   "action": {
     "default_popup": "popup.html",
     "default_title": "MusicNerd Extension"
   },
   "background": {
-    "service_worker": "src/background.js"
+    "service_worker": "background.js"
   },
   "content_scripts": [
-    {
-      "matches": [
-        "*://www.youtube.com/*",
-        "*://music.youtube.com/*"  
-      ],
-      "js": ["dist/content.js"],
-      "run_at": "document_idle"
-    }
-  ],
+     {
+       "matches": ["<all_urls>"],
+       "js": ["dist/content.js"],
+       "run_at": "document_idle"
+     }
+   ],
   "options_page": "options.html",
   "permissions": ["storage", "activeTab", "scripting"],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "https://mn-chrome-ext.vercel.app/*",
+    "https://www.googleapis.com/*"
+  ],
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.vercel.app"
   }
