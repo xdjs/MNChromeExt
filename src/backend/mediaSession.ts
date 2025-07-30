@@ -17,13 +17,12 @@ export function detectMediaSession() {
     });
 
     // Be less strict - check for any metadata, not just playing state
-    if (!data) {
-        console.log('No media session metadata available');
+    if (playbackState === 'paused') {
         return null;
     }
 
     // Allow any playback state, not just 'playing'
-    if (!data.title && !data.artist) {
+    if (!data) {
         console.log('No useful media session data (no title or artist)');
         return null;
     }
