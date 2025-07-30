@@ -6,9 +6,19 @@ const openAI = new OpenAI({
 });
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-    const {title} = req.body as {title?: string};
-    if (!title) {
-        return res.status(400).json({error: 'Missing title'})
+    // Enable CORS for your Chrome extension
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'content-type');
+    if (req.method === 'OPTIONS') return res.status(204).end();
+
+    const {title, data} = req.body as {title?: string, data?: any};
+    
+    // Support both legacy title-only calls and new data object calls
+    const inputData = data || (title ? {title} : null);
+    const extractionTitle = inputData?.title || inputData?.videoTitle || title;
+    
+    if (!extractionTitle) {
+        return res.status(400).json({error: 'Missing title or data'})
     }
 
     try {
@@ -17,21 +27,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       messages: [
         {
           role: "system",
-          content: `You are an expert at extracting artist names from YouTube video titles. 
+          content: `You are an expert at extracting the primary artist name from YouTube video titles and related data. 
           
           Rules:
-          - Extract the main artist/musician name from the title
+          - Extract the main/primary artist/musician name from the provided data
+          - Use ALL available context: title, description, channel name, tags, album info, etc.
+          - Channel names can indicate official artist accounts (e.g., "Taylor Swift" channel likely means Taylor Swift content)
+          - Descriptions often contain credits and additional context
           - Focus on music-related content (songs, interviews, performances, covers)
           - Return only the artist name, nothing else
-          - If the title contains multiple artists, return the main/first one
-          - If the title is a remix, choose a remixer instead of the original track author.
+          - If multiple artists are present, return the main/primary one (usually first mentioned or channel owner)
+          - If the title is a remix, prioritize the remixer over the original track author
           - If no clear artist is identifiable, return "null"
-          - Remove extra words like "Official", "Music Video", etc.
-          - YouTube Music titles often format as 'Artist - Song Title' while YouTube might be 'Song Title by Artist'. Extract accordingly.
+          - Remove extra words like "Official", "Music Video", "Records", "Entertainment", etc.
+          - YouTube Music titles often format as 'Artist - Song Title' while YouTube might be 'Song Title by Artist'
+          - Consider channel context: if channel is "Arctic Monkeys" and title is "Do I Wanna Know?", artist is clearly "Arctic Monkeys"
           
           Examples:
           "Jane Remover Interview" → "Jane Remover"
-          "Billie Eilish - Bad Guy (Official Music Video)" → "Billie Eilish"  
+          "Bad Guy" on "Billie Eilish" channel → "Billie Eilish"  
           "Radiohead Live at Madison Square Garden" → "Radiohead"
           "How to play guitar" → "null"
           "Taylor Swift ft. Ed Sheeran - Song Title" → "Taylor Swift"
@@ -39,7 +53,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
         {
           role: "user", 
-          content: `Extract the artist name from this YouTube title: "${title}"`
+          content: `Extract the primary artist name from this YouTube data: ${JSON.stringify(inputData, null, 2)}`
         }
       ],
       temperature: 0.1, // Low temperature for consistent extraction
@@ -52,7 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(200).json({artist:null});
         }
 
-        console.log(`[OpenAI] Extracted "${name}" from title: "${title}"`);
+        console.log(`[OpenAI] Extracted "${name}" from data: "${extractionTitle}"`);
         res.status(200).json({ artist: name });
      } catch (error) {
         console.error('[OpenAI] Extract artist error:', error);
