@@ -23,13 +23,12 @@
        "run_at": "document_idle"
      }
    ],
-  "options_page": "options.html",
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["activeTab"],
   "host_permissions": [
     "https://mn-chrome-ext.vercel.app/*",
     "https://www.googleapis.com/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.vercel.app"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.vercel.app https://*.googleapis.com"
   }
 } 
