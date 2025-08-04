@@ -1,16 +1,16 @@
 export function renderArtist(a){
     
     console.log(a);
-    if(!a){ 
-        document.body.innerHTML = `
-            <div style="padding: 20px; text-align: center;">
-                <h3>Artist Not Yet in Database</h3>
-                <p>This artist isn't in our MusicNerd Database yet.</p>
-                <p><a href="https://www.musicnerd.xyz" target="_blank">Visit MusicNerd.xyz</a> to suggest additions!</p>
-            </div>
-        `; 
-        return; 
-    }
+    // if(!a){ 
+    //     document.body.innerHTML = `
+    //         <div style="padding: 20px; text-align: center;">
+    //             <h3>Artist Not Yet in Database</h3>
+    //             <p>This artist isn't in our MusicNerd Database yet.</p>
+    //             <p><a href="https://www.musicnerd.xyz" target="_blank">Visit MusicNerd.xyz</a> to suggest additions!</p>
+    //         </div>
+    //     `; 
+    //     return; 
+    // }
 
     console.log(a.bio);
     const titleEl = document.getElementById('title');
@@ -126,4 +126,50 @@ export function renderArtist(a){
     console.log(titleEl);
     console.log(bioEl);
   }
-  
+export function errorScreen(error) {
+  const titleEl = document.getElementById('title');
+  const bioEl = document.getElementById('bio');
+
+switch (error) {
+  case "noArtist": {
+    titleEl.textContent ="Sorry, we don't know this artist!";
+  bioEl.textContent = "If you'd like, you can add them on MusicNerd!";
+
+  const musicNerdEl = document.getElementById('MN-link');
+  musicNerdEl.textContent = document.createElement('a');
+  musicNerdEl.className = 'flex items-center gap-3 hover:bg-gray-50 p-2 rounded';
+  musicNerdEl.target = '_blank';
+  musicNerdEl.href =  `https://www.musicnerd.xyz`;
+  const MNurl = document.createElement('p');
+  MNurl.className = 'text-sm text-gray-500 truncate';
+  MNurl.textContent = 'Add them on MusicNerd.xyz';
+  musicNerdEl.appendChild(MNurl);
+  break;
+  }
+
+  case "noData": {
+    titleEl.textContent ="We don't see anything playing!";
+    bioEl.textContent = "Start playing something to get started!";
+    break;
+  }
+
+  case "notInjected": {
+    titleEl.textContent ="Our system isn't hooked up yet.";
+    bioEl.textContent = "If you've just installed or reloaded the application, \n please restart your browser or reload the page.";
+    break;
+  }
+
+  case "default": {
+    titleEl.textContent ="An error has occured.";
+    break;
+  }
+
+  default: {
+    titleEl.textContent ="An error has occured.";
+    break;
+  }
+}
+
+console.log(titleEl);
+console.log(bioEl);
+}

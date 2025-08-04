@@ -60,7 +60,7 @@ export async function fetchArtistsMediaSession() {
   
   if (!info) {
     console.log('No media session data available');
-    return artists;
+    return "noMediaSession";
   }
   
   if (info?.title) {

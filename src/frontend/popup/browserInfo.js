@@ -34,3 +34,15 @@ try {
   console.error('Error getting media session results', error);
 }
 }
+
+export async function isContentScriptReady(tabId) {
+  return new Promise((resolve) => {
+    chrome.tabs.sendMessage(tabId, {action: 'checkMediaSession'}, (response) => {
+      if (chrome.runtime.lastError) {
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    });
+  });
+}
