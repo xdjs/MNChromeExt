@@ -12,7 +12,7 @@
     "build:prod": "npm run build:css && node build.js --production",
     "watch": "node build.js --watch",
     "package": "npm run build:prod && npm run package:zip",
-    "package:zip": "powershell \"Compress-Archive -Path manifest.json,popup.html,popup.css,options.html,assets,dist,background.js -DestinationPath extension.zip -Force\" && echo \"📦 Extension packaged successfully!\"",
+    "package:zip": "powershell \"Compress-Archive -Path manifest.json,popup.html,popup.css,assets,dist,background.js -DestinationPath extension.zip -Force\" && echo \"📦 Extension packaged successfully!\"",
     "clean": "powershell \"if (Test-Path dist) { Remove-Item -Recurse -Force dist }; if (Test-Path extension.zip) { Remove-Item extension.zip }\"",
     "db:push": "drizzle-kit push:pg",
     "db:generate": "drizzle-kit generate:pg"

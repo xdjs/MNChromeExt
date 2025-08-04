@@ -1,7 +1,16 @@
 export function renderArtist(a){
     
     console.log(a);
-    if(!a){ document.body.textContent='Artist not found'; return; }
+    if(!a){ 
+        document.body.innerHTML = `
+            <div style="padding: 20px; text-align: center;">
+                <h3>Artist Not Yet in Database</h3>
+                <p>This artist isn't in our MusicNerd Database yet.</p>
+                <p><a href="https://www.musicnerd.xyz" target="_blank">Visit MusicNerd.xyz</a> to suggest additions!</p>
+            </div>
+        `; 
+        return; 
+    }
 
     console.log(a.bio);
     const titleEl = document.getElementById('title');
