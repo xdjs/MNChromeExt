@@ -8,7 +8,6 @@ A template project for building Chrome extensions using Manifest V3.
 - `src/background.js` — Background service worker
 - `src/content.js` — Content script injected into pages
 - `popup.html`, `popup.css`, `src/popup.js` — Popup UI
-- `options.html`, `src/options.js` — Options page
 
 ## Getting Started
 
