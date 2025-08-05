@@ -1,2 +1,469 @@
-"use strict";(()=>{function w(t){console.log(t),console.log(t.bio);let e=document.getElementById("title"),n=document.getElementById("bio"),s=document.getElementById("links-title"),o=document.getElementById("links-list"),r=document.getElementById("MN-link");r.textContent=document.createElement("a"),t.id?r.href="https://www.musicnerd.xyz/artist/"+t.id:r.href="https://www.musicnerd.xyz",r.className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded",r.target="_blank";let i=document.createElement("p");if(i.className="text-sm text-gray-500 truncate",t.id?i.textContent="View on MusicNerd.xyz":i.textContent="Add them on MusicNerd.xyz",r.appendChild(i),e.textContent=t.name??"Sorry, we don't know this artist!",n.textContent=t.bio??"No bio Available",t.id||(n.textContent=""),s&&(t.id?(s.textContent=`${t.name??"Artist"}'s Links`,s.style.display="block"):s.style.display="none"),o)if(o.innerHTML="",Array.isArray(t.links)&&t.links.length>0)t.links.forEach(a=>{let c=document.createElement("li"),d=document.createElement("a");d.href=a.url??a.href??"#",d.target="_blank",d.className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded";let x=document.createElement("p");x.className="font-semibold uppercase text-sm text-blue-600 hover:text-blue-800",x.textContent=a.label??a.title??"Link";let g=document.createElement("p");g.className="text-sm text-gray-500 truncate",a.platform_type_list&&a.platform_type_list.includes("social")?g.textContent=t[a.label]??a.url??a.href??"":g.textContent="";let y=document.createElement("img");y.src=a.image,y.alt="Artist Photo",y.className="w-8 h-8 rounded-full object-cover flex-shrik-0";let b=document.createElement("div");b.className="flex-1 min-w-0",b.appendChild(x),b.appendChild(g),d.appendChild(y),d.appendChild(b),c.appendChild(d),o.appendChild(c)});else if(t.id){let a=document.createElement("li");a.className="text-gray-400 text-sm",a.textContent="No links available",o.appendChild(a)}else{let a=document.createElement("li");a.className="text-gray-400 text-sm",a.textContent="",o.appendChild(a)}console.log(e),console.log(n)}function m(t){let e=document.getElementById("title"),n=document.getElementById("bio");switch(t){case"noArtist":{e.textContent="Sorry, we don't know this artist!",n.textContent="If you'd like, you can add them on MusicNerd!";let s=document.getElementById("MN-link");s.textContent=document.createElement("a"),s.className="flex items-center gap-3 hover:bg-gray-50 p-2 rounded",s.target="_blank",s.href="https://www.musicnerd.xyz";let o=document.createElement("p");o.className="text-sm text-gray-500 truncate",o.textContent="Add them on MusicNerd.xyz",s.appendChild(o);break}case"noData":{e.textContent="We don't see anything playing!",n.textContent="Start playing something to get started!";break}case"notInjected":{e.textContent="Our system isn't hooked up yet.",n.textContent=`If you've just installed or reloaded the application, 
- please restart your browser or reload the page.`;break}case"default":{e.textContent="An error has occured.";break}default:{e.textContent="An error has occured.";break}}console.log(e),console.log(n)}var p=[],l=0;function C(t){if(console.log("renderArtists called with:",t),p=t,t.length===1){console.log("Single artist detected, using regular UI"),_(),w(t[0]);return}console.log("Multiple artists detected, showing tabs"),F(t),M()}function F(t){let e=document.getElementById("artist-tabs"),n=document.getElementById("tabs-list");n.innerHTML="",t.forEach((s,o)=>{let r=document.createElement("button");r.className=`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${o===l?"border-blue-500 text-blue-600 bg-blue-50":"border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`;let i=s.name||"Unknown artist";r.textContent=s.isPrimary?`${i} \u2B50`:i,r.addEventListener("click",()=>A(o)),n.appendChild(r)}),e.style.display="block"}function _(){let t=document.getElementById("artist-tabs");t.style.display="none"}function A(t){t===l||!p[t]||(l=t,R(),M())}function R(){document.querySelectorAll("#tabs-list button").forEach((e,n)=>{n===l?e.className="px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600 bg-blue-50 transition-colors":e.className="px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors"})}function M(){let t=p[l];t&&w(t)}document.addEventListener("keydown",t=>{p.length<=1||(t.key==="ArrowLeft"&&l>0?A(l-1):t.key==="ArrowRight"&&l<p.length-1&&A(l+1))});var k=new Map,U=3*60*1e3;function S(t,e="name"){return`${e}:${t.toLowerCase()}`}function N(t,e,n="name"){let s=S(t,n);k.set(s,{data:e,timestamp:Date.now(),links:e.links||[]})}function E(t,e="name"){let n=S(t,e),s=k.get(n);return s?Date.now()-s.timestamp>U?(k.delete(n),null):s.data:null}var u="https://mn-chrome-ext.vercel.app";async function T(t){console.log("fetchArtist called with:",t);let e=E(t.id,"id");if(e)return e;let n=`${u}/api/artist/by-id/${encodeURIComponent(t.id)}`;console.log("Fetching artist from:",n);let s=await fetch(n),o=s.ok?await s.json():null;if(console.log("Artist API response:",o),o&&!o.error&&o.id){let r=`${u}/api/urlmap/links/${encodeURIComponent(o.id)}`,i=await fetch(r);o.links=i.ok?await i.json():[],N(t.id,o,"id")}return o}async function v(t){let e=E(t.channel);if(e)return e;console.log("fetchArtistFromName called with:",t);let n=`${u}/api/artist/by-user/${encodeURIComponent(t.channel)}`;console.log("Fetching artist from:",n);let s=await fetch(n),o=s.ok?await s.json():null;if(console.log("Artist API response:",o),o&&!o.error&&o.id){let r=`${u}/api/urlmap/links/${encodeURIComponent(o.id)}`,i=await fetch(r);o.links=i.ok?await i.json():[],N(t.channel,o)}return o}async function f(t){let e=`${u}/api/openai/extract-multiple-artists`,s=await fetch(e,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(typeof t=="string"?{title:t}:{data:t})});return s.ok?(await s.json()).artists||[]:[]}async function h(t){if(!t||t.length===0)return[];console.log("fetchMultipleArtistsByNames called with:",t);let e=`${u}/api/artist/batch`,n=await fetch(e,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({usernames:t})});if(!n.ok)return console.error("Batch artist fetch failed:",n.status,n.statusText),[];let s=await n.json();return console.log("Batch artist API response:",s),s.artists||[]}function P(t){return new Promise(e=>{chrome.tabs.sendMessage(t,{type:"GET_YT_INFO"},e)})}async function B(t){try{let n=(await chrome.tabs.query({})).map(o=>new Promise(r=>{chrome.tabs.sendMessage(o.id,{action:"checkMediaSession"},i=>{chrome.runtime.lastError?r(null):r(i)})})),s=await Promise.all(n);return console.log(s),s.find(o=>o!=null&&o!==void 0)}catch(e){console.error("Error getting media session results",e)}}async function L(t){return new Promise(e=>{chrome.tabs.sendMessage(t,{action:"checkMediaSession"},n=>{chrome.runtime.lastError?e(!1):e(!0)})})}function I(t){return[/\bft\.?\s/i,/\bfeat\.?\s/i,/\bfeaturing\b/i,/\bwith\b/i,/\sx\s/i,/\s&\s/,/\s\+\s/,/\bvs\.?\b/i,/\b(collab|collaboration)\b/i,/\bremix by\b/i,/\bprod\.? by\b/i].some(n=>n.test(t))}async function $(t){let e=await P(t),n=[];if(e?.id){let s=await T(e);if(s&&!s.error&&s.id){if(n.push({...s,isPrimary:!0}),I(e.title)){let r=(await f(e)).filter(i=>i.toLowerCase()!==s.name.toLowerCase());if(r.length>0){let a=(await h(r)).filter(c=>c&&!c.error&&c.id).map(c=>({...c,isPrimary:!1}));n.push(...a)}}if(n.length>0)return n}}if(e?.title||n.length===0){console.log("falling back to AI");let s=await f(e);if(console.log(s),s.length>0){let r=(await h(s)).filter(i=>i&&!i.error&&i.id).map(i=>({...i,isPrimary:!1}));n.push(...r)}}return n}async function j(){let t=await B();console.log("Media session info:",t);let e=[];if(!t)return console.log("No media session data available"),"noMediaSession";if(t?.title){let n=await v(t);if(n&&!n.error&&n.id){if(e.push({...n,isPrimary:!0}),I(t.title)){let o=(await f(t)).filter(r=>r.toLowerCase()!==n.name.toLowerCase());if(o.length>0){let i=(await h(o)).filter(a=>a&&!a.error&&a.id).map(a=>({...a,isPrimary:!1}));e.push(...i)}}if(e.length>0)return e}}if(t?.title&&e.length===0){console.log("falling back to AI");let n=await f(t);if(console.log(n),n.length>0){let o=(await h(n)).filter(r=>r&&!r.error&&r.id).map(r=>({...r,isPrimary:!1}));e.push(...o)}}return console.log("returning artists..."),e}document.addEventListener("DOMContentLoaded",async()=>{let[t]=await chrome.tabs.query({active:!0,currentWindow:!0});if(!await L(t.id)){m("notInjected");return}if(!t.url.includes("youtube.com/watch")&&!t.url.includes("music.youtube.com")){let n=await j();if(n.length>0&&n!="noMediaSession")C(n);else switch(n){case"noMediaSession":{m("noData");break}case void 0:{m("noArtist");break}}return}let e=await $(t.id);console.log("rendering multiple artists"),e.length>0?C(e):m("noArtist")});})();
+"use strict";
+(() => {
+  // src/frontend/popup/ui.js
+  function renderArtist(a) {
+    console.log(a);
+    console.log(a.bio);
+    const titleEl = document.getElementById("title");
+    const bioEl = document.getElementById("bio");
+    const linksTitleEl = document.getElementById("links-title");
+    const linksListEl = document.getElementById("links-list");
+    const musicNerdEl = document.getElementById("MN-link");
+    musicNerdEl.textContent = document.createElement("a");
+    if (a.id) {
+      musicNerdEl.href = `https://www.musicnerd.xyz/artist/` + a.id;
+    } else {
+      musicNerdEl.href = `https://www.musicnerd.xyz`;
+    }
+    musicNerdEl.className = "flex items-center gap-3 hover:bg-gray-50 p-2 rounded";
+    musicNerdEl.target = "_blank";
+    const MNurl = document.createElement("p");
+    MNurl.className = "text-sm text-gray-500 truncate";
+    if (a.id) {
+      MNurl.textContent = "View on MusicNerd.xyz";
+    } else {
+      MNurl.textContent = "Add them on MusicNerd.xyz";
+    }
+    musicNerdEl.appendChild(MNurl);
+    titleEl.textContent = a.name ?? "Sorry, we don't know this artist!";
+    bioEl.textContent = a.bio ?? "No bio Available";
+    if (!a.id) {
+      bioEl.textContent = "";
+    }
+    if (linksTitleEl) {
+      if (a.id) {
+        linksTitleEl.textContent = `${a.name ?? "Artist"}'s Links`;
+        linksTitleEl.style.display = "block";
+      } else {
+        linksTitleEl.style.display = "none";
+      }
+    }
+    if (linksListEl) {
+      linksListEl.innerHTML = "";
+      if (Array.isArray(a.links) && a.links.length > 0) {
+        a.links.forEach((l) => {
+          const li = document.createElement("li");
+          const linkWrapper = document.createElement("a");
+          linkWrapper.href = l.url ?? l.href ?? "#";
+          linkWrapper.target = "_blank";
+          linkWrapper.className = "flex items-center gap-3 hover:bg-gray-50 p-2 rounded";
+          const label = document.createElement("p");
+          label.className = "font-semibold uppercase text-sm text-blue-600 hover:text-blue-800";
+          label.textContent = l.label ?? l.title ?? "Link";
+          const url = document.createElement("p");
+          url.className = "text-sm text-gray-500 truncate";
+          if (l.platform_type_list && l.platform_type_list.includes("social")) {
+            url.textContent = a[l.label] ?? l.url ?? l.href ?? "";
+          } else {
+            url.textContent = "";
+          }
+          const img = document.createElement("img");
+          img.src = l.image;
+          img.alt = "Artist Photo";
+          img.className = "w-8 h-8 rounded-full object-cover flex-shrik-0";
+          const textContainer = document.createElement("div");
+          textContainer.className = "flex-1 min-w-0";
+          textContainer.appendChild(label);
+          textContainer.appendChild(url);
+          linkWrapper.appendChild(img);
+          linkWrapper.appendChild(textContainer);
+          li.appendChild(linkWrapper);
+          linksListEl.appendChild(li);
+        });
+      } else if (a.id) {
+        const li = document.createElement("li");
+        li.className = "text-gray-400 text-sm";
+        li.textContent = "No links available";
+        linksListEl.appendChild(li);
+      } else {
+        const li = document.createElement("li");
+        li.className = "text-gray-400 text-sm";
+        li.textContent = "";
+        linksListEl.appendChild(li);
+      }
+    }
+    console.log(titleEl);
+    console.log(bioEl);
+  }
+  function errorScreen(error) {
+    const titleEl = document.getElementById("title");
+    const bioEl = document.getElementById("bio");
+    switch (error) {
+      case "noArtist": {
+        titleEl.textContent = "Sorry, we don't know this artist!";
+        bioEl.textContent = "If you'd like, you can add them on MusicNerd!";
+        const musicNerdEl = document.getElementById("MN-link");
+        musicNerdEl.textContent = document.createElement("a");
+        musicNerdEl.className = "flex items-center gap-3 hover:bg-gray-50 p-2 rounded";
+        musicNerdEl.target = "_blank";
+        musicNerdEl.href = `https://www.musicnerd.xyz`;
+        const MNurl = document.createElement("p");
+        MNurl.className = "text-sm text-gray-500 truncate";
+        MNurl.textContent = "Add them on MusicNerd.xyz";
+        musicNerdEl.appendChild(MNurl);
+        break;
+      }
+      case "noData": {
+        titleEl.textContent = "We don't see anything playing!";
+        bioEl.textContent = "Start playing something to get started!";
+        break;
+      }
+      case "notInjected": {
+        titleEl.textContent = "Our system isn't hooked up yet.";
+        bioEl.textContent = "If you've just installed or reloaded the application, \n please restart your browser or reload the page.";
+        break;
+      }
+      case "default": {
+        titleEl.textContent = "An error has occured.";
+        break;
+      }
+      default: {
+        titleEl.textContent = "An error has occured.";
+        break;
+      }
+    }
+    console.log(titleEl);
+    console.log(bioEl);
+  }
+
+  // src/frontend/popup/multi-ui.js
+  var artistList = [];
+  var activeArtistIndex = 0;
+  function renderArtists(artists) {
+    console.log("renderArtists called with:", artists);
+    artistList = artists;
+    if (artists.length === 1) {
+      console.log("Single artist detected, using regular UI");
+      hideArtistTabs();
+      renderArtist(artists[0]);
+      return;
+    }
+    console.log("Multiple artists detected, showing tabs");
+    showArtistTabs(artists);
+    renderActiveArtist();
+  }
+  function showArtistTabs(artists) {
+    const tabsContainer = document.getElementById("artist-tabs");
+    const tabsList = document.getElementById("tabs-list");
+    tabsList.innerHTML = "";
+    artists.forEach((artist, index) => {
+      const tab = document.createElement("button");
+      tab.className = `px-4 py-2 text-sm font-medium border-b-2 transition-colors ${index === activeArtistIndex ? "border-blue-500 text-blue-600 bg-blue-50" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`;
+      const displayName = artist.name || "Unknown artist";
+      tab.textContent = artist.isPrimary ? `${displayName} \u2B50` : displayName;
+      tab.addEventListener("click", () => switchToArtist(index));
+      tabsList.appendChild(tab);
+    });
+    tabsContainer.style.display = "block";
+  }
+  function hideArtistTabs() {
+    const tabsContainer = document.getElementById("artist-tabs");
+    tabsContainer.style.display = "none";
+  }
+  function switchToArtist(index) {
+    if (index === activeArtistIndex || !artistList[index]) {
+      return;
+    }
+    activeArtistIndex = index;
+    updateTabStyles();
+    renderActiveArtist();
+  }
+  function updateTabStyles() {
+    const tabs = document.querySelectorAll("#tabs-list button");
+    tabs.forEach((tab, index) => {
+      if (index === activeArtistIndex) {
+        tab.className = "px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600 bg-blue-50 transition-colors";
+      } else {
+        tab.className = "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors";
+      }
+    });
+  }
+  function renderActiveArtist() {
+    const activeArtist = artistList[activeArtistIndex];
+    if (activeArtist) {
+      renderArtist(activeArtist);
+    }
+  }
+  document.addEventListener("keydown", (e) => {
+    if (artistList.length <= 1) return;
+    if (e.key === "ArrowLeft" && activeArtistIndex > 0) {
+      switchToArtist(activeArtistIndex - 1);
+    } else if (e.key === "ArrowRight" && activeArtistIndex < artistList.length - 1) {
+      switchToArtist(activeArtistIndex + 1);
+    }
+  });
+
+  // src/frontend/popup/cache.js
+  var artistCache = /* @__PURE__ */ new Map();
+  var cacheLifeTime = 3 * 60 * 1e3;
+  function getCacheKey(identifier, type = "name") {
+    return `${type}:${identifier.toLowerCase()}`;
+  }
+  function cacheArtist(identifier, data, type = "name") {
+    const key = getCacheKey(identifier, type);
+    artistCache.set(key, {
+      data,
+      timestamp: Date.now(),
+      links: data.links || []
+    });
+  }
+  function getCachedArtist(identifier, type = "name") {
+    const key = getCacheKey(identifier, type);
+    const cached = artistCache.get(key);
+    if (!cached) {
+      return null;
+    }
+    if (Date.now() - cached.timestamp > cacheLifeTime) {
+      artistCache.delete(key);
+      return null;
+    }
+    return cached.data;
+  }
+
+  // src/frontend/popup/api.js
+  var API = "https://mn-chrome-ext.vercel.app";
+  async function fetchArtist(info) {
+    console.log("fetchArtist called with:", info);
+    const cached = getCachedArtist(info.id, "id");
+    if (cached) return cached;
+    const url = `${API}/api/artist/by-id/${encodeURIComponent(info.id)}`;
+    console.log("Fetching artist from:", url);
+    const r = await fetch(url);
+    const artist = r.ok ? await r.json() : null;
+    console.log("Artist API response:", artist);
+    if (artist && !artist.error && artist.id) {
+      const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
+      const linksResponse = await fetch(linksUrl);
+      artist.links = linksResponse.ok ? await linksResponse.json() : [];
+      cacheArtist(info.id, artist, "id");
+    }
+    return artist;
+  }
+  async function fetchArtistFromName(info) {
+    const cached = getCachedArtist(info.channel);
+    if (cached) return cached;
+    console.log("fetchArtistFromName called with:", info);
+    const url = `${API}/api/artist/by-user/${encodeURIComponent(info.channel)}`;
+    console.log("Fetching artist from:", url);
+    const r = await fetch(url);
+    const artist = r.ok ? await r.json() : null;
+    console.log("Artist API response:", artist);
+    if (artist && !artist.error && artist.id) {
+      const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
+      const linksResponse = await fetch(linksUrl);
+      artist.links = linksResponse.ok ? await linksResponse.json() : [];
+      cacheArtist(info.channel, artist);
+    }
+    return artist;
+  }
+  async function extractMultipleArtistsFromTitle(titleOrData) {
+    const url = `${API}/api/openai/extract-multiple-artists`;
+    const requestBody = typeof titleOrData === "string" ? { title: titleOrData } : { data: titleOrData };
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody)
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.artists || [];
+  }
+  async function fetchMultipleArtistsByNames(artistNames) {
+    if (!artistNames || artistNames.length === 0) return [];
+    console.log("fetchMultipleArtistsByNames called with:", artistNames);
+    const url = `${API}/api/artist/batch`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usernames: artistNames })
+    });
+    if (!response.ok) {
+      console.error("Batch artist fetch failed:", response.status, response.statusText);
+      return [];
+    }
+    const data = await response.json();
+    console.log("Batch artist API response:", data);
+    return data.artists || [];
+  }
+
+  // src/frontend/popup/browserInfo.js
+  function getYTInfo(tabId) {
+    return new Promise((res) => {
+      chrome.tabs.sendMessage(tabId, { type: "GET_YT_INFO" }, res);
+    });
+  }
+  async function getMediaSessionInfo(tabId) {
+    try {
+      const tabs = await chrome.tabs.query({});
+      const promises = tabs.map(
+        (tab) => new Promise((resolve) => {
+          chrome.tabs.sendMessage(tab.id, { action: "checkMediaSession" }, (response) => {
+            if (chrome.runtime.lastError) {
+              resolve(null);
+            } else {
+              resolve(response);
+            }
+          });
+        })
+      );
+      const results = await Promise.all(promises);
+      console.log(results);
+      return results.find((result) => result != null && result !== void 0);
+    } catch (error) {
+      console.error("Error getting media session results", error);
+    }
+  }
+  async function isContentScriptReady(tabId) {
+    return new Promise((resolve) => {
+      chrome.tabs.sendMessage(tabId, { action: "checkMediaSession" }, (response) => {
+        if (chrome.runtime.lastError) {
+          resolve(false);
+        } else {
+          resolve(true);
+        }
+      });
+    });
+  }
+
+  // src/frontend/popup/collabs.js
+  function hasCollaborationKeywords(title) {
+    const patterns = [
+      /\bft\.?\s/i,
+      // "ft. " or "ft "
+      /\bfeat\.?\s/i,
+      // "feat. " or "feat "  
+      /\bfeaturing\b/i,
+      // "featuring"
+      /\bwith\b/i,
+      // "with"
+      /\sx\s/i,
+      // " x " (Artist x Artist)
+      /\s&\s/,
+      // " & "
+      /\s\+\s/,
+      // " + "
+      /\bvs\.?\b/i,
+      // "vs" or "vs."
+      /\b(collab|collaboration)\b/i,
+      // "collab", "collaboration"
+      /\bremix by\b/i,
+      // "remix by"
+      /\bprod\.? by\b/i
+      // "prod by", "produced by"
+    ];
+    return patterns.some((pattern) => pattern.test(title));
+  }
+
+  // src/frontend/popup/fetchArtists.js
+  async function fetchMultipleArtists(tabId) {
+    const info = await getYTInfo(tabId);
+    let artists = [];
+    if (info?.id) {
+      const artist = await fetchArtist(info);
+      if (artist && !artist.error && artist.id) {
+        artists.push({ ...artist, isPrimary: true });
+        if (hasCollaborationKeywords(info.title)) {
+          const allArtistNames = await extractMultipleArtistsFromTitle(info);
+          const newNames = allArtistNames.filter(
+            (name) => name.toLowerCase() !== artist.name.toLowerCase()
+          );
+          if (newNames.length > 0) {
+            const newArtists = await fetchMultipleArtistsByNames(newNames);
+            const validArtists = newArtists.filter((artist2) => artist2 && !artist2.error && artist2.id).map((artist2) => ({ ...artist2, isPrimary: false }));
+            artists.push(...validArtists);
+          }
+        }
+        if (artists.length > 0) {
+          return artists;
+        }
+      }
+    }
+    if (info?.title || artists.length === 0) {
+      console.log("falling back to AI");
+      const artistNames = await extractMultipleArtistsFromTitle(info);
+      console.log(artistNames);
+      if (artistNames.length > 0) {
+        const foundArtists = await fetchMultipleArtistsByNames(artistNames);
+        const validArtists = foundArtists.filter((artist) => artist && !artist.error && artist.id).map((artist) => ({ ...artist, isPrimary: false }));
+        artists.push(...validArtists);
+      }
+    }
+    return artists;
+  }
+  async function fetchArtistsMediaSession() {
+    const info = await getMediaSessionInfo();
+    console.log("Media session info:", info);
+    let artists = [];
+    if (!info) {
+      console.log("No media session data available");
+      return "noMediaSession";
+    }
+    if (info?.title) {
+      const artist = await fetchArtistFromName(info);
+      if (artist && !artist.error && artist.id) {
+        artists.push({ ...artist, isPrimary: true });
+        if (hasCollaborationKeywords(info.title)) {
+          const allArtistNames = await extractMultipleArtistsFromTitle(info);
+          const newNames = allArtistNames.filter(
+            (name) => name.toLowerCase() !== artist.name.toLowerCase()
+          );
+          if (newNames.length > 0) {
+            const newArtists = await fetchMultipleArtistsByNames(newNames);
+            const validArtists = newArtists.filter((artist2) => artist2 && !artist2.error && artist2.id).map((artist2) => ({ ...artist2, isPrimary: false }));
+            artists.push(...validArtists);
+          }
+        }
+        if (artists.length > 0) {
+          return artists;
+        }
+      }
+    }
+    if (info?.title && artists.length === 0) {
+      console.log("falling back to AI");
+      const artistNames = await extractMultipleArtistsFromTitle(info);
+      console.log(artistNames);
+      if (artistNames.length > 0) {
+        const foundArtists = await fetchMultipleArtistsByNames(artistNames);
+        const validArtists = foundArtists.filter((artist) => artist && !artist.error && artist.id).map((artist) => ({ ...artist, isPrimary: false }));
+        artists.push(...validArtists);
+      }
+    }
+    console.log("returning artists...");
+    return artists;
+  }
+
+  // src/frontend/popup/main.js
+  document.addEventListener("DOMContentLoaded", async () => {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!await isContentScriptReady(tab.id)) {
+      errorScreen("notInjected");
+      return;
+    }
+    if (!tab.url.includes("youtube.com/watch") && !tab.url.includes("music.youtube.com")) {
+      const artists2 = await fetchArtistsMediaSession();
+      if (artists2.length > 0 && artists2 != "noMediaSession") {
+        renderArtists(artists2);
+      } else {
+        switch (artists2) {
+          case "noMediaSession": {
+            errorScreen("noData");
+            break;
+          }
+          case void 0: {
+            errorScreen("noArtist");
+            break;
+          }
+        }
+      }
+      return;
+    }
+    const artists = await fetchMultipleArtists(tab.id);
+    console.log("rendering multiple artists");
+    if (artists.length > 0) {
+      renderArtists(artists);
+    } else {
+      errorScreen("noArtist");
+    }
+  });
+})();
+//# sourceMappingURL=main.js.map

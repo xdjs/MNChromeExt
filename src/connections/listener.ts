@@ -2,10 +2,14 @@ import { getVideoId } from "../backend/linkExtractors.js";
 import { fetchYTInfo } from "../backend/server/youtubeQueries.js";
 // @ts-ignore -- compiled file provides the export
 import { scrapeYTInfo } from "../backend/pageScraper";
-import { detectMediaSession } from "../backend/mediaSession.js";
+// @ts-ignore -- JS file without type declarations
+import { detectMediaSession, watchForMediaSession } from "../backend/mediaSession.js";
 
 
 console.log('[YT-EXT] content script injected');
+
+// Start watching for media session changes
+watchForMediaSession();
 
 chrome.runtime.onMessage.addListener((req, _sender, sendResponse) => {
   if (req.type === 'GET_YT_INFO') {
@@ -34,3 +38,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     sendResponse(detectMediaSession());
   }
 });
+
