@@ -39,3 +39,34 @@ export function detectMediaSession() {
 }
 
 
+export function watchForMediaSession() {
+    if (!('mediaSession' in navigator)) return;
+
+    let lastMetaData = null;
+
+    const checkMediaSession = () => {
+        const data = navigator.mediaSession.metadata;
+        const state = navigator.mediaSession.playbackState;
+        if (JSON.stringify(data) != JSON.stringify(lastMetaData) && state == 'playing') {
+            lastMetaData = JSON.stringify(data);
+
+            chrome.runtime.sendMessage({
+                action: 'musicDetected',
+
+                data: detectMediaSession()
+            });
+        }
+        else {
+            lastMetaData = JSON.stringify(data);
+            chrome.runtime.sendMessage({
+                action: 'musicPaused',
+
+                data: detectMediaSession()
+            });
+        }
+
+    };
+    
+    setInterval(checkMediaSession, 3000);
+}
+

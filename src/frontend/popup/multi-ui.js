@@ -9,18 +9,6 @@ export function renderArtists(artists) {
     console.log('renderArtists called with:', artists);
     artistList = artists;
 
-    // Handle edge cases
-  // if (!artists || artists.length === 0) {
-  //   console.log('No artists found, showing error message');
-  //   document.body.innerHTML = `
-  //     <div style="padding: 20px; text-align: center;">
-  //       <h3>Artist Not Yet in Database</h3>
-  //       <p>This artist isn't in our MusicNerd Database yet.</p>
-  //       <p><a href="https://www.musicnerd.xyz" target="_blank">Visit MusicNerd.xyz</a> to suggest additions!</p>
-  //     </div>
-  //   `;
-  //   return;
-  // }
   
   // Single artist - use existing UI
   if (artists.length === 1) {
