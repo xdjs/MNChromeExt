@@ -24,6 +24,7 @@ if (!fs.existsSync('dist')) {
 console.log(`🔨 Building extension for ${nodeEnv}...`);
 
 try {
+  // Build content script
   await build({
     entryPoints: ['src/connections/listener.ts'],
     bundle: true,
@@ -34,6 +35,21 @@ try {
     define: {
       // turns every occurrence of process.env.YT_API_KEY into "actual-key"
       'process.env.YT_API_KEY': JSON.stringify(process.env.YT_API_KEY),
+      'process.env.NODE_ENV': JSON.stringify(nodeEnv)
+    },
+    target: 'es2020',
+    platform: 'browser'
+  });
+
+  // Build popup script
+  await build({
+    entryPoints: ['src/frontend/popup/main.js'],
+    bundle: true,
+    format: 'iife',
+    outfile: 'dist/main.js',
+    minify: isProduction,
+    sourcemap: !isProduction,
+    define: {
       'process.env.NODE_ENV': JSON.stringify(nodeEnv)
     },
     target: 'es2020',

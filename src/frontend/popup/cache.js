@@ -22,7 +22,7 @@ export function getCachedArtist(identifier, type = 'name') {
         return null;
     }
 
-    if (Date.now() = cached.timestamp > cacheLifeTime) {
+    if (Date.now() - cached.timestamp > cacheLifeTime) {
         artistCache.delete(key);
         return null;
     }

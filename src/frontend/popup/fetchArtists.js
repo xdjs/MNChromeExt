@@ -104,7 +104,7 @@ export async function fetchArtistsMediaSession() {
       artists.push(...validArtists);
     }
   }
-  
+  console.log("returning artists...")
   return artists;
   
 }

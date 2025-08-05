@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (!tab.url.includes('youtube.com/watch') && !tab.url.includes('music.youtube.com')) {
     const artists = await fetchArtistsMediaSession();
-    if (artists && artists != "noMediaSession") {
+    if (artists.length > 0 && artists != "noMediaSession") {
       renderArtists(artists);
     }
     else {
