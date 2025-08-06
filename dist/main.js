@@ -194,30 +194,82 @@
   });
 
   // src/frontend/popup/cache.js
-  var artistCache = /* @__PURE__ */ new Map();
   var cacheLifeTime = 3 * 60 * 1e3;
   function getCacheKey(identifier, type = "name") {
     return `${type}:${identifier.toLowerCase()}`;
   }
-  function cacheArtist(identifier, data, type = "name") {
+  async function cacheArtist(identifier, data, type = "name") {
     const key = getCacheKey(identifier, type);
-    artistCache.set(key, {
+    const cacheEntry = {
       data,
       timestamp: Date.now(),
       links: data.links || []
+    };
+    console.log(`cached artist: ${JSON.stringify(cacheEntry)}`);
+    await chrome.storage.local.set({
+      [`cache_${key}`]: cacheEntry
     });
   }
-  function getCachedArtist(identifier, type = "name") {
+  async function getCachedArtist(identifier, type = "name") {
     const key = getCacheKey(identifier, type);
-    const cached = artistCache.get(key);
+    const result = await chrome.storage.local.get(`cache_${key}`);
+    const cached = result[`cache_${key}`];
     if (!cached) {
       return null;
     }
     if (Date.now() - cached.timestamp > cacheLifeTime) {
-      artistCache.delete(key);
+      await chrome.storage.local.remove(`cache_${key}`);
       return null;
     }
     return cached.data;
+  }
+  async function cacheVideoResult(videoId, artistData) {
+    const key = `video_${videoId}`;
+    await chrome.storage.local.set({
+      [`cache_${key}`]: {
+        data: artistData,
+        timestamp: Date.now()
+      }
+    });
+  }
+  async function getCachedVideoResult(videoId) {
+    const key = `video_${videoId}`;
+    const result = await chrome.storage.local.get(`cache_${key}`);
+    const cached = result[`cache_${key}`];
+    if (!cached) return null;
+    if (Date.now() - cached.timestamp > cacheLifeTime) {
+      await chrome.storage.local.remove(`cache_${key}`);
+      return null;
+    }
+    return cached.data;
+  }
+  function createMediaSessionKey(mediaSessionData) {
+    const title = (mediaSessionData.title || "").toLowerCase().trim();
+    const artist = (mediaSessionData.channel || "").toLowerCase().trim();
+    return `${artist}_${title}`.replace(/[^a-z0-9_]/g, "");
+  }
+  async function getCachedMediaSessionResult(mediaSessionData) {
+    const key = createMediaSessionKey(mediaSessionData);
+    const result = await chrome.storage.local.get(`cache_media_${key}`);
+    const cached = result[`cache_media_${key}`];
+    console.log(`grabbing cache with key: cache is  ${cached}`);
+    if (!cached) return null;
+    if (Date.now() - cached.timestamp > cacheLifeTime) {
+      await chrome.storage.local.remove(`cache_media_${key}`);
+      return null;
+    }
+    return cached.data;
+  }
+  async function cacheMediaSessionResult(mediaSessionData, artistData) {
+    const key = createMediaSessionKey(mediaSessionData);
+    await chrome.storage.local.set({
+      [`cache_media_${key}`]: {
+        data: artistData,
+        timestamp: Date.now(),
+        originalMediaData: mediaSessionData
+      }
+    });
+    console.log(`caching data: ${key}`);
   }
 
   // src/frontend/popup/api.js
@@ -355,7 +407,31 @@
   }
 
   // src/frontend/popup/fetchArtists.js
+  function getVideoIdFromUrl(url) {
+    const patterns = [
+      /v=([^&]+)/,
+      /youtu\.be\/([^?&]+)/,
+      /music\.youtube\.com\/watch\?v=([^&]+)/
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  }
   async function fetchMultipleArtists(tabId) {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    let videoId = null;
+    if (tab?.url) {
+      videoId = getVideoIdFromUrl(tab.url);
+      if (videoId) {
+        const cached = await getCachedVideoResult(videoId);
+        if (cached) {
+          console.log("Returning cached video result for:", videoId);
+          return cached;
+        }
+      }
+    }
     const info = await getYTInfo(tabId);
     let artists = [];
     if (info?.id) {
@@ -374,6 +450,9 @@
           }
         }
         if (artists.length > 0) {
+          if (videoId) {
+            await cacheVideoResult(videoId, artists);
+          }
           return artists;
         }
       }
@@ -388,16 +467,24 @@
         artists.push(...validArtists);
       }
     }
+    if (videoId) {
+      await cacheVideoResult(videoId, artists);
+    }
     return artists;
   }
   async function fetchArtistsMediaSession() {
     const info = await getMediaSessionInfo();
     console.log("Media session info:", info);
-    let artists = [];
     if (!info) {
       console.log("No media session data available");
       return "noMediaSession";
     }
+    const cached = await getCachedMediaSessionResult(info);
+    if (cached) {
+      console.log("cached result found, returning...");
+      return cached;
+    }
+    let artists = [];
     if (info?.title) {
       const artist = await fetchArtistFromName(info);
       if (artist && !artist.error && artist.id) {
@@ -426,6 +513,7 @@
         const foundArtists = await fetchMultipleArtistsByNames(artistNames);
         const validArtists = foundArtists.filter((artist) => artist && !artist.error && artist.id).map((artist) => ({ ...artist, isPrimary: false }));
         artists.push(...validArtists);
+        cacheMediaSessionResult(info, artists);
       }
     }
     console.log("returning artists...");

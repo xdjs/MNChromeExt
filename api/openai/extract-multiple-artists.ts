@@ -30,7 +30,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           content: `You are an expert at extracting artist names from YouTube video titles and related data. 
           
             Rules:
-            - Extract all artist/musician names from the provided data
+            - Extract artist names from YouTube data using title, channel, description, tags.
             - Use ALL available context: title, description, channel name, tags, album info, etc.
             - Channel names can indicate official artist accounts (e.g., "Taylor Swift" channel likely means Taylor Swift content)
             - Descriptions often contain credits, collaborations, and additional artist information

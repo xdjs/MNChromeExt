@@ -111,6 +111,7 @@ export async function fetchMultipleArtistsByNames(artistNames) {
   const data = await response.json();
   console.log('Batch artist API response:', data);
   
+  
   // Return array of artists (some may be null for not found)
   return data.artists || [];
 }

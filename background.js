@@ -9,13 +9,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
   
   if (request.action === 'musicDetected') {
-    console.log("Music Detected")
     chrome.action.setBadgeText({text: "♪"});
     chrome.action.setBadgeBackgroundColor({color: "#4CAF50"});
   }
 
   if (request.action === 'musicPaused') {
-    console.log("Music Detected")
     chrome.action.setBadgeText({text: ""});
     chrome.action.setBadgeBackgroundColor({color: "#4CAF50"});
   }
