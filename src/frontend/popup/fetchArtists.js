@@ -1,8 +1,37 @@
 import { fetchArtist, fetchArtistFromName, extractArtistFromTitle, extractMultipleArtistsFromTitle, fetchMultipleArtistsByNames}   from './api.js';
 import { getYTInfo, scrapeYTInfo, getMediaSessionInfo  }     from './browserInfo.js';
 import { hasCollaborationKeywords } from './collabs.js';
+import { cacheVideoResult, getCachedVideoResult, cacheArtist, getCachedArtist, getCachedMediaSessionResult, cacheMediaSessionResult } from './cache.js';
+
+// Helper function to extract video ID from URL
+function getVideoIdFromUrl(url) {
+    const patterns = [
+        /v=([^&]+)/,
+        /youtu\.be\/([^?&]+)/,
+        /music\.youtube\.com\/watch\?v=([^&]+)/
+    ];
+    for (const pattern of patterns) {
+        const match = url.match(pattern);
+        if (match) return match[1];
+    }
+    return null;
+}
 
 export async function fetchMultipleArtists(tabId) {
+    // First check for cached video result using tab URL
+    const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+    let videoId = null;
+    if (tab?.url) {
+        videoId = getVideoIdFromUrl(tab.url);
+        if (videoId) {
+            const cached = await getCachedVideoResult(videoId);
+            if (cached) {
+                console.log('Returning cached video result for:', videoId);
+                return cached;
+            }
+        }
+    }
+
     const info = await getYTInfo(tabId);
     let artists = [];
   
@@ -28,7 +57,11 @@ export async function fetchMultipleArtists(tabId) {
           }   
           
           // Only return early if we found at least one artist
+
           if (artists.length > 0) {
+              if (videoId) {
+                await cacheVideoResult(videoId, artists);
+              }
               return artists;
           }
       }
@@ -40,30 +73,43 @@ export async function fetchMultipleArtists(tabId) {
     
     if (artistNames.length > 0) {
       const foundArtists = await fetchMultipleArtistsByNames(artistNames);
+      
       const validArtists = foundArtists
         .filter(artist => artist && !artist.error && artist.id)
         .map(artist => ({ ...artist, isPrimary: false }));
+      
       
       artists.push(...validArtists);
     }
   }
   
   // Note: Can't use DOM scraping fallback for media session since we don't have tabId
-  
+  if (videoId) {
+    await cacheVideoResult(videoId, artists);
+  }
   return artists;
   }
   
 export async function fetchArtistsMediaSession() {
   const info = await getMediaSessionInfo();
   console.log('Media session info:', info); // Debug log
-  let artists = [];
+  
   
   if (!info) {
     console.log('No media session data available');
     return "noMediaSession";
   }
+
+  const cached = await getCachedMediaSessionResult(info);
+  if (cached) {
+    console.log("cached result found, returning...") ;
+    return cached;
+  }
+
+  let artists = [];
   
   if (info?.title) {
+
       const artist = await fetchArtistFromName(info);
       if (artist && !artist.error && artist.id) {
           artists.push({...artist, isPrimary: true});
@@ -86,7 +132,7 @@ export async function fetchArtistsMediaSession() {
           
           // Only return early if we found at least one artist
           if (artists.length > 0) {
-              return artists;
+            return artists;
           }
       }
     }
@@ -102,9 +148,12 @@ export async function fetchArtistsMediaSession() {
         .map(artist => ({ ...artist, isPrimary: false }));
       
       artists.push(...validArtists);
+
+      cacheMediaSessionResult(info, artists);
     }
   }
   console.log("returning artists...")
+  
   return artists;
   
 }

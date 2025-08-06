@@ -23,7 +23,7 @@
        "run_at": "document_idle"
      }
    ],
-  "permissions": ["activeTab"],
+  "permissions": ["activeTab", "storage"],
   "host_permissions": [
     "https://mn-chrome-ext.vercel.app/*",
     "https://www.googleapis.com/*"

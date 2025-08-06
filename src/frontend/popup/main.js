@@ -3,6 +3,7 @@ import { renderArtists } from './multi-ui.js';
 import { errorScreen } from './ui.js';
 import { fetchMultipleArtists, fetchArtistsMediaSession } from './fetchArtists.js';
 import { isContentScriptReady } from './browserInfo.js';
+import { getCachedArtist } from './cache.js';
 
 
 
@@ -35,6 +36,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     }// Show "not on YouTube" message
     return;
   }
+
+  
 
   const artists = await fetchMultipleArtists(tab.id);
   console.log("rendering multiple artists")
