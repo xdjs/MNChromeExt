@@ -71,7 +71,7 @@ export async function getBatchArtistsFromUsernames(usernames: string[]) {
 
   // Get all artists in one query using IN clause for better performance
   const foundArtists = await db.query.artists.findMany({
-    where: inArray(artists.lcname, usernames.map(u => u.toLowerCase()))
+    where: inArray(artists.lcname, usernames)
   });
 
   console.log(usernames);
