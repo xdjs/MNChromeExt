@@ -27,6 +27,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       decodeURIComponent(username).toLowerCase().replace(/[,]/g, '')
     );
 
+    console.log(cleanUsernames);
+
     const artists = await getBatchArtistsFromUsernames(cleanUsernames);
     res.status(200).json({ artists });
   } catch (err) {
