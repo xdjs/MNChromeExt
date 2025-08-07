@@ -193,7 +193,7 @@
     }
   });
 
-  // src/frontend/popup/cache.js
+  // src/backend/client/cache.js
   var cacheLifeTime = 3 * 60 * 1e3;
   function getCacheKey(identifier, type = "name") {
     return `${type}:${identifier.toLowerCase()}`;
@@ -272,7 +272,7 @@
     console.log(`caching data: ${key}`);
   }
 
-  // src/frontend/popup/api.js
+  // src/connections/api.js
   var API = "https://mn-chrome-ext.vercel.app";
   async function fetchArtist(info) {
     console.log("fetchArtist called with:", info);
@@ -322,12 +322,12 @@
   }
   async function fetchMultipleArtistsByNames(artistNames) {
     if (!artistNames || artistNames.length === 0) return [];
-    console.log("fetchMultipleArtistsByNames called with:", artistNames);
+    console.log("fetchMultipleArtistsByNames called with:", artistNames.map((name) => encodeURIComponent(name)));
     const url = `${API}/api/artist/batch`;
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ usernames: artistNames })
+      body: JSON.stringify({ usernames: artistNames.map((name) => encodeURIComponent(name)) })
     });
     if (!response.ok) {
       console.error("Batch artist fetch failed:", response.status, response.statusText);
@@ -338,7 +338,7 @@
     return data.artists || [];
   }
 
-  // src/frontend/popup/browserInfo.js
+  // src/backend/browserInfo.js
   function getYTInfo(tabId) {
     return new Promise((res) => {
       chrome.tabs.sendMessage(tabId, { type: "GET_YT_INFO" }, res);
@@ -377,7 +377,7 @@
     });
   }
 
-  // src/frontend/popup/collabs.js
+  // src/backend/client/collabs.js
   function hasCollaborationKeywords(title) {
     const patterns = [
       /\bft\.?\s/i,
@@ -406,7 +406,7 @@
     return patterns.some((pattern) => pattern.test(title));
   }
 
-  // src/frontend/popup/fetchArtists.js
+  // src/connections/fetchArtists.js
   function getVideoIdFromUrl(url) {
     const patterns = [
       /v=([^&]+)/,

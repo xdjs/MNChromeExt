@@ -1,9 +1,10 @@
-import { getVideoId } from "../backend/linkExtractors.js";
+// @ts-ignore -- JS file without type declarations
+import { getVideoId } from "../backend/client/linkExtractors.js";
 import { fetchYTInfo } from "../backend/server/youtubeQueries.js";
 // @ts-ignore -- compiled file provides the export
-import { scrapeYTInfo } from "../backend/pageScraper";
+import { scrapeYTInfo } from "../backend/client/pageScraper.js";
 // @ts-ignore -- JS file without type declarations
-import { detectMediaSession, watchForMediaSession } from "../backend/mediaSession.js";
+import { detectMediaSession, watchForMediaSession } from "../backend/client/mediaSession.js";
 
 
 console.log('[YT-EXT] content script injected');

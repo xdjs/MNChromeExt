@@ -1,9 +1,12 @@
 
 import { renderArtists } from './multi-ui.js';
 import { errorScreen } from './ui.js';
-import { fetchMultipleArtists, fetchArtistsMediaSession } from './fetchArtists.js';
-import { isContentScriptReady } from './browserInfo.js';
-import { getCachedArtist } from './cache.js';
+import { fetchMultipleArtists, fetchArtistsMediaSession } from '../../connections/fetchArtists.js';
+import { isContentScriptReady } from '../../backend/browserInfo.js';
+import { getCachedArtist } from '../../backend/client/cache.js';
+
+
+
 
 
 

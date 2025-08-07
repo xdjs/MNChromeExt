@@ -4,7 +4,7 @@
   var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
-  // src/backend/linkExtractors.ts
+  // src/backend/client/linkExtractors.js
   function getVideoId(url) {
     const patterns = [
       /v=([^&]+)/,
@@ -43,7 +43,7 @@
     };
   }
 
-  // src/backend/pageScraper.ts
+  // src/backend/client/pageScraper.ts
   function scrapeYTInfo() {
     let title;
     let channelName;
@@ -74,6 +74,297 @@
     }
     console.log("no info found");
     return null;
+  }
+
+  // src/backend/client/cache.js
+  var cacheLifeTime = 3 * 60 * 1e3;
+  function getCacheKey(identifier, type = "name") {
+    return `${type}:${identifier.toLowerCase()}`;
+  }
+  async function cacheArtist(identifier, data, type = "name") {
+    const key = getCacheKey(identifier, type);
+    const cacheEntry = {
+      data,
+      timestamp: Date.now(),
+      links: data.links || []
+    };
+    console.log(`cached artist: ${JSON.stringify(cacheEntry)}`);
+    await chrome.storage.local.set({
+      [`cache_${key}`]: cacheEntry
+    });
+  }
+  async function getCachedArtist(identifier, type = "name") {
+    const key = getCacheKey(identifier, type);
+    const result = await chrome.storage.local.get(`cache_${key}`);
+    const cached = result[`cache_${key}`];
+    if (!cached) {
+      return null;
+    }
+    if (Date.now() - cached.timestamp > cacheLifeTime) {
+      await chrome.storage.local.remove(`cache_${key}`);
+      return null;
+    }
+    return cached.data;
+  }
+  async function cacheVideoResult(videoId, artistData) {
+    const key = `video_${videoId}`;
+    await chrome.storage.local.set({
+      [`cache_${key}`]: {
+        data: artistData,
+        timestamp: Date.now()
+      }
+    });
+  }
+  async function getCachedVideoResult(videoId) {
+    const key = `video_${videoId}`;
+    const result = await chrome.storage.local.get(`cache_${key}`);
+    const cached = result[`cache_${key}`];
+    if (!cached) return null;
+    if (Date.now() - cached.timestamp > cacheLifeTime) {
+      await chrome.storage.local.remove(`cache_${key}`);
+      return null;
+    }
+    return cached.data;
+  }
+  function createMediaSessionKey(mediaSessionData) {
+    const title = (mediaSessionData.title || "").toLowerCase().trim();
+    const artist = (mediaSessionData.channel || "").toLowerCase().trim();
+    return `${artist}_${title}`.replace(/[^a-z0-9_]/g, "");
+  }
+  async function getCachedMediaSessionResult(mediaSessionData) {
+    const key = createMediaSessionKey(mediaSessionData);
+    const result = await chrome.storage.local.get(`cache_media_${key}`);
+    const cached = result[`cache_media_${key}`];
+    console.log(`grabbing cache with key: cache is  ${cached}`);
+    if (!cached) return null;
+    if (Date.now() - cached.timestamp > cacheLifeTime) {
+      await chrome.storage.local.remove(`cache_media_${key}`);
+      return null;
+    }
+    return cached.data;
+  }
+  async function cacheMediaSessionResult(mediaSessionData, artistData) {
+    const key = createMediaSessionKey(mediaSessionData);
+    await chrome.storage.local.set({
+      [`cache_media_${key}`]: {
+        data: artistData,
+        timestamp: Date.now(),
+        originalMediaData: mediaSessionData
+      }
+    });
+    console.log(`caching data: ${key}`);
+  }
+
+  // src/connections/api.js
+  var API = "https://mn-chrome-ext.vercel.app";
+  async function fetchArtist(info) {
+    console.log("fetchArtist called with:", info);
+    const cached = getCachedArtist(info.id, "id");
+    if (cached) return cached;
+    const url = `${API}/api/artist/by-id/${encodeURIComponent(info.id)}`;
+    console.log("Fetching artist from:", url);
+    const r = await fetch(url);
+    const artist = r.ok ? await r.json() : null;
+    console.log("Artist API response:", artist);
+    if (artist && !artist.error && artist.id) {
+      const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
+      const linksResponse = await fetch(linksUrl);
+      artist.links = linksResponse.ok ? await linksResponse.json() : [];
+      cacheArtist(info.id, artist, "id");
+    }
+    return artist;
+  }
+  async function fetchArtistFromName(info) {
+    const cached = getCachedArtist(info.channel);
+    if (cached) return cached;
+    console.log("fetchArtistFromName called with:", info);
+    const url = `${API}/api/artist/by-user/${encodeURIComponent(info.channel)}`;
+    console.log("Fetching artist from:", url);
+    const r = await fetch(url);
+    const artist = r.ok ? await r.json() : null;
+    console.log("Artist API response:", artist);
+    if (artist && !artist.error && artist.id) {
+      const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
+      const linksResponse = await fetch(linksUrl);
+      artist.links = linksResponse.ok ? await linksResponse.json() : [];
+      cacheArtist(info.channel, artist);
+    }
+    return artist;
+  }
+  async function extractMultipleArtistsFromTitle(titleOrData) {
+    const url = `${API}/api/openai/extract-multiple-artists`;
+    const requestBody = typeof titleOrData === "string" ? { title: titleOrData } : { data: titleOrData };
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody)
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.artists || [];
+  }
+  async function fetchMultipleArtistsByNames(artistNames) {
+    if (!artistNames || artistNames.length === 0) return [];
+    console.log("fetchMultipleArtistsByNames called with:", artistNames.map((name) => encodeURIComponent(name)));
+    const url = `${API}/api/artist/batch`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usernames: artistNames.map((name) => encodeURIComponent(name)) })
+    });
+    if (!response.ok) {
+      console.error("Batch artist fetch failed:", response.status, response.statusText);
+      return [];
+    }
+    const data = await response.json();
+    console.log("Batch artist API response:", data);
+    return data.artists || [];
+  }
+
+  // src/backend/client/collabs.js
+  function hasCollaborationKeywords(title) {
+    const patterns = [
+      /\bft\.?\s/i,
+      // "ft. " or "ft "
+      /\bfeat\.?\s/i,
+      // "feat. " or "feat "  
+      /\bfeaturing\b/i,
+      // "featuring"
+      /\bwith\b/i,
+      // "with"
+      /\sx\s/i,
+      // " x " (Artist x Artist)
+      /\s&\s/,
+      // " & "
+      /\s\+\s/,
+      // " + "
+      /\bvs\.?\b/i,
+      // "vs" or "vs."
+      /\b(collab|collaboration)\b/i,
+      // "collab", "collaboration"
+      /\bremix by\b/i,
+      // "remix by"
+      /\bprod\.? by\b/i
+      // "prod by", "produced by"
+    ];
+    return patterns.some((pattern) => pattern.test(title));
+  }
+
+  // src/connections/preLoad.js
+  async function preLoadMediaSession() {
+    console.log("preloading...");
+    try {
+      const mediaData = detectMediaSession();
+      if (!mediaData || !mediaData.title) {
+        console.log("No media session data to preload");
+        return;
+      }
+      const cached = await getCachedMediaSessionResult(mediaData);
+      if (cached) {
+        console.log("Preload: cached result already exists: " + cached);
+        return;
+      }
+      let artists2 = [];
+      if (mediaData.title) {
+        const artist = await fetchArtistFromName(mediaData);
+        if (artist && !artist.error && artist.id) {
+          artists2.push({ ...artist, isPrimary: true });
+          if (hasCollaborationKeywords(mediaData.title)) {
+            const allArtistNames = await extractMultipleArtistsFromTitle(mediaData);
+            const newNames = allArtistNames.filter(
+              (name) => name.toLowerCase() !== artist.name.toLowerCase()
+            );
+            if (newNames.length > 0) {
+              const newArtists = await fetchMultipleArtistsByNames(newNames);
+              const validArtists = newArtists.filter((artist2) => artist2 && !artist2.error && artist2.id).map((artist2) => ({ ...artist2, isPrimary: false }));
+              artists2.push(...validArtists);
+            }
+          }
+          if (artists2.length > 0) {
+            await cacheMediaSessionResult(mediaData, artists2);
+            console.log("Successfully preloaded and cached artist data via name lookup");
+            return artists2;
+          }
+        }
+      }
+      if (mediaData.title && artists2.length === 0) {
+        console.log("Preload: falling back to AI extraction");
+        const artistNames = await extractMultipleArtistsFromTitle(mediaData);
+        console.log("AI extracted names:", artistNames);
+        if (artistNames.length > 0) {
+          const foundArtists = await fetchMultipleArtistsByNames(artistNames);
+          const validArtists = foundArtists.filter((artist) => artist && !artist.error && artist.id).map((artist) => ({ ...artist, isPrimary: false }));
+          artists2.push(...validArtists);
+        }
+        await cacheMediaSessionResult(mediaData, artists2);
+      }
+      return artists2;
+    } catch (error) {
+      console.error("Preload error:", error);
+      return [];
+    }
+  }
+  async function preLoadYT() {
+    const videoId = getVideoId(window.location.href);
+    if (!videoId) return;
+    const cached = await getCachedVideoResult(videoId);
+    if (cached) return;
+    const info = await fetchYTInfo(videoId);
+    if (!info) return;
+    let artists2 = [];
+    const artist = await fetchArtist({
+      id: info.id,
+      title: info.title,
+      channel: info.channel
+    });
+    if (artist && !artist.error) {
+      artists2.push({ ...artist, isPrimary: true });
+      if (hasCollaborationKeywords(info.title)) {
+        console.log("[preload] using AI for collaborators");
+        const allArtistNames = await extractMultipleArtistsFromTitle(info);
+        const newNames = allArtistNames.filter(
+          (name) => name.toLowerCase() !== artist.name.toLowerCase()
+        );
+        if (newNames.length > 0) {
+          const newArtists = await fetchMultipleArtistsByNames(newNames);
+          const validArtists = newArtists.filter((artist2) => artist2 && !artist2.error && artist2.id).map((artist2) => ({ ...artist2, isPrimary: false }));
+          artists2.push(...validArtists);
+        }
+      }
+    }
+    if (artists2.length === 0 && info.title) {
+      console.log("[Preload] falling back to AI");
+      const artistNames = await extractMultipleArtistsFromTitle(info);
+      if (artistNames.length > 0) {
+        const foundArtists = await fetchMultipleArtistsByNames(artistNames);
+        const validArtists = foundArtists.filter((artist2) => artist2 && !artist2.error && artist2.id).map((artist2) => ({ ...artist2, isPrimary: false }));
+        artists2.push(...validArtists);
+      }
+    }
+    if (artists2.length > 0) {
+      console.log("Successfully preloaded YouTube data");
+    }
+    await cacheVideoResult(videoId, artists2);
+    return artists2;
+  }
+  async function preLoad() {
+    try {
+      const videoId = getVideoId(window.location.href);
+      if (videoId) {
+        console.log("preloading youtube");
+        return await preLoadYT(videoId);
+      }
+      const mediaData = detectMediaSession();
+      if (mediaData && mediaData.title) {
+        console.log("preloading media session");
+        return await preLoadMediaSession(mediaData);
+      }
+      console.log("No preloadable content found");
+      return [];
+    } catch (error) {
+      console.error("Preload error:", error);
+      return [];
+    }
   }
 
   // node_modules/drizzle-orm/entity.js
@@ -1440,7 +1731,15 @@
     }
   );
 
-  // src/backend/mediaSession.js
+  // src/backend/client/mediaSession.js
+  function isExtensionValid() {
+    try {
+      chrome.runtime.id;
+      return true;
+    } catch {
+      return false;
+    }
+  }
   function detectMediaSession() {
     if (!("mediaSession" in navigator)) {
       console.log("Media Session API not supported");
@@ -1448,12 +1747,6 @@
     }
     const data = navigator.mediaSession.metadata;
     const playbackState = navigator.mediaSession.playbackState;
-    console.log("Media Session Debug:", {
-      metadata: data,
-      playbackState,
-      hasMetadata: !!data,
-      url: window.location.href
-    });
     if (playbackState === "paused") {
       return null;
     }
@@ -1476,20 +1769,23 @@
     if (!("mediaSession" in navigator)) return;
     let lastMetaData = null;
     const checkMediaSession = () => {
-      const data = navigator.mediaSession.metadata;
-      const state = navigator.mediaSession.playbackState;
-      if (JSON.stringify(data) != JSON.stringify(lastMetaData) && state == "playing") {
-        lastMetaData = JSON.stringify(data);
-        chrome.runtime.sendMessage({
-          action: "musicDetected",
-          data: detectMediaSession()
-        });
-      } else {
-        lastMetaData = JSON.stringify(data);
-        chrome.runtime.sendMessage({
-          action: "musicPaused",
-          data: detectMediaSession()
-        });
+      if (isExtensionValid) {
+        const data = navigator.mediaSession.metadata;
+        const state = navigator.mediaSession.playbackState;
+        if (JSON.stringify(data) != JSON.stringify(lastMetaData) && state == "playing") {
+          lastMetaData = JSON.stringify(data);
+          chrome.runtime.sendMessage({
+            action: "musicDetected",
+            data: detectMediaSession()
+          });
+          preLoad();
+        } else {
+          lastMetaData = JSON.stringify(data);
+          chrome.runtime.sendMessage({
+            action: "musicPaused",
+            data: detectMediaSession()
+          });
+        }
       }
     };
     setInterval(checkMediaSession, 3e3);
