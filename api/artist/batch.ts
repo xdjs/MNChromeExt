@@ -24,7 +24,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     // Clean and decode usernames
     const cleanUsernames = usernames.map(username => 
-      decodeURIComponent(username).toLowerCase().replace(/[,]/g, '')
+      decodeURIComponent(username).toLowerCase().replace(/[/s,]/g, '')
     );
 
     console.log(cleanUsernames);
