@@ -1,3 +1,5 @@
+
+
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Extension installed.');
 });
@@ -18,4 +20,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     chrome.action.setBadgeBackgroundColor({color: "#4CAF50"});
   }
 }); 
+
+
 

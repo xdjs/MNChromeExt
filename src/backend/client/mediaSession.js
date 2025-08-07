@@ -1,4 +1,15 @@
-import { artists } from "./server/db/schema.js";
+import { preLoad } from "../../connections/preLoad.js";
+import { artists } from "../server/db/schema.js";
+
+
+function isExtensionValid() {
+    try {
+        chrome.runtime.id;
+        return true;
+    } catch {
+        return false;
+    }
+}
 
 export function detectMediaSession() {
     if (!('mediaSession' in navigator)) {
@@ -8,13 +19,7 @@ export function detectMediaSession() {
 
     const data = navigator.mediaSession.metadata;
     const playbackState = navigator.mediaSession.playbackState;
-    
-    console.log('Media Session Debug:', {
-        metadata: data,
-        playbackState: playbackState,
-        hasMetadata: !!data,
-        url: window.location.href
-    });
+
 
     // Be less strict - check for any metadata, not just playing state
     if (playbackState === 'paused') {
@@ -45,25 +50,30 @@ export function watchForMediaSession() {
     let lastMetaData = null;
 
     const checkMediaSession = () => {
-        const data = navigator.mediaSession.metadata;
-        const state = navigator.mediaSession.playbackState;
-        if (JSON.stringify(data) != JSON.stringify(lastMetaData) && state == 'playing') {
-            lastMetaData = JSON.stringify(data);
-
-            chrome.runtime.sendMessage({
-                action: 'musicDetected',
-
-                data: detectMediaSession()
-            });
+        if (isExtensionValid) {
+            const data = navigator.mediaSession.metadata;
+            const state = navigator.mediaSession.playbackState;
+            if (JSON.stringify(data) != JSON.stringify(lastMetaData) && state == 'playing') {
+                lastMetaData = JSON.stringify(data);
+    
+                chrome.runtime.sendMessage({
+                    action: 'musicDetected',
+    
+                    data: detectMediaSession()
+                });
+    
+                preLoad();
+            }
+            else {
+                lastMetaData = JSON.stringify(data);
+                chrome.runtime.sendMessage({
+                    action: 'musicPaused',
+    
+                    data: detectMediaSession()
+                });
+            }
         }
-        else {
-            lastMetaData = JSON.stringify(data);
-            chrome.runtime.sendMessage({
-                action: 'musicPaused',
-
-                data: detectMediaSession()
-            });
-        }
+        
 
     };
     

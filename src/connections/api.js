@@ -1,5 +1,5 @@
 const API = 'https://mn-chrome-ext.vercel.app';
-import { cacheArtist, getCachedArtist } from './cache.js';
+import { cacheArtist, getCachedArtist } from '../backend/client/cache.js';
 
 
 
@@ -94,13 +94,13 @@ export async function extractMultipleArtistsFromTitle(titleOrData) {
 export async function fetchMultipleArtistsByNames(artistNames) {
   if (!artistNames || artistNames.length === 0) return [];
 
-  console.log('fetchMultipleArtistsByNames called with:', artistNames);
+  console.log('fetchMultipleArtistsByNames called with:', artistNames.map(name => decodeURIComponent(name)));
   
   const url = `${API}/api/artist/batch`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ usernames: artistNames })
+    body: JSON.stringify({ usernames: artistNames.map(name => encodeURIComponent(name)) })
   });
 
   if (!response.ok) {
