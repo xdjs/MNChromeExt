@@ -74,6 +74,8 @@ export async function getBatchArtistsFromUsernames(usernames: string[]) {
     where: inArray(artists.lcname, usernames.map(u => u.toLowerCase()))
   });
 
+  console.log(usernames);
+
   // Get all artist IDs for batch link fetching
   const artistIds = foundArtists.map(artist => artist.id).filter(Boolean);
   
