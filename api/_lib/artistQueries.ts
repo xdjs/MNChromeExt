@@ -69,11 +69,14 @@ export async function getMainUrls(artist: any) {
 export async function getBatchArtistsFromUsernames(usernames: string[]) {
   if (usernames.length === 0) return [];
 
-  // Use explicit string matching with escaped characters
+  // Search for both formats: with spaces and without spaces (for data inconsistency)
   const searchTerms = usernames.map(u => u.toLowerCase());
-  const conditions = searchTerms.map(term => 
-    sql`${artists.lcname} = ${term}`
-  );
+  const conditions: any[] = [];
+  
+  for (const term of searchTerms) {
+    conditions.push(eq(artists.lcname, term)); // Original term
+    conditions.push(eq(artists.lcname, term.replace(/\s/g, ''))); // Without spaces
+  }
   
   const foundArtists = await db.query.artists.findMany({
     where: or(...conditions)
