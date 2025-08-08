@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, or } from 'drizzle-orm';
 import { db } from './db.js';
 import { artists, urlmap } from '../../src/backend/server/db/schema.js';
 
@@ -69,9 +69,12 @@ export async function getMainUrls(artist: any) {
 export async function getBatchArtistsFromUsernames(usernames: string[]) {
   if (usernames.length === 0) return [];
 
-  // Get all artists in one query using IN clause for better performance
+  // Get all artists in one query using OR conditions for better special character handling
+  const searchTerms = usernames.map(u => u.toLowerCase());
+  const conditions = searchTerms.map(username => eq(artists.lcname, username));
+  
   const foundArtists = await db.query.artists.findMany({
-    where: inArray(artists.lcname, usernames)
+    where: or(...conditions)
   });
 
   console.log(usernames);
