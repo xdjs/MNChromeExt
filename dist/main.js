@@ -322,7 +322,7 @@
   }
   async function fetchMultipleArtistsByNames(artistNames) {
     if (!artistNames || artistNames.length === 0) return [];
-    console.log("fetchMultipleArtistsByNames called with:", artistNames.map((name) => encodeURIComponent(name)));
+    console.log("fetchMultipleArtistsByNames called with:", artistNames.map((name) => decodeURIComponent(name)));
     const url = `${API}/api/artist/batch`;
     const response = await fetch(url, {
       method: "POST",

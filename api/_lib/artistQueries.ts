@@ -2,6 +2,16 @@ import { eq, sql } from 'drizzle-orm';
 import { db } from './db.js';
 import { artists, urlmap } from '../../src/backend/server/db/schema.js';
 
+function normalizeForLookup(input: string): string {
+  return (input ?? '')
+    .normalize('NFKC')
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // remove zero-width chars
+    .replace(/[⁄∕／]/g, '/') // normalize unicode slashes to '/'
+    .replace(/[＄]/g, '$') // normalize fullwidth dollar to '$'
+    .toLowerCase()
+    .replace(/[\s,]+/g, ''); // remove spaces and commas only
+}
+
 export function getArtistFromYTid(ytId: string) {
   return db.query.artists.findFirst({
     where: eq(artists.youtubechannel, ytId)
@@ -10,7 +20,7 @@ export function getArtistFromYTid(ytId: string) {
 
 export async function getArtistFromYTUsername(username: string) {
   console.log(username);
-  const normalized = username.toLowerCase().replace(/[\s,]+/g, '');
+  const normalized = normalizeForLookup(username);
   const result: any[] = await db.execute(
     sql`SELECT * FROM artists WHERE replace(replace(lower(lcname), ' ', ''), ',', '') = ${normalized} LIMIT 1`
   );
@@ -72,18 +82,17 @@ export async function getBatchArtistsFromUsernames(usernames: string[]) {
   if (usernames.length === 0) return [];
 
   // Get all artists using raw SQL for proper special character handling
-  const searchTerms = usernames.map(u => u.toLowerCase().replace(/[\s,]+/g, ''));
-  
-  // Use individual queries as fallback for special characters
-  const foundArtists: any[] = [];
-  for (const term of searchTerms) {
-    const result = await db.execute(
-      sql`SELECT * FROM artists WHERE replace(replace(lower(lcname), ' ', ''), ',', '') = ${term}`
-    );
-    if (result.length > 0) {
-      foundArtists.push(result[0]);
-    }
-  }
+  const searchTerms = usernames.map(u => normalizeForLookup(u));
+
+  // Single batched query using OR clause across normalized lcname
+  const orConditions = searchTerms.map((term) =>
+    sql`replace(replace(lower(lcname), ' ', ''), ',', '') = ${term}`
+  );
+
+  const whereClause = sql.join(orConditions, sql` OR `);
+  const foundArtists: any[] = searchTerms.length > 0
+    ? await db.execute(sql`SELECT * FROM artists WHERE ${whereClause}`)
+    : [];
 
   // Get all artist IDs for batch link fetching
   const artistIds = foundArtists.map(artist => artist.id).filter(Boolean);
@@ -104,8 +113,8 @@ export async function getBatchArtistsFromUsernames(usernames: string[]) {
 
   // Map results back to requested usernames, preserving order
   const results = usernames.map(username => {
-    const normalize = (s: string | null | undefined) => (s ?? '').toLowerCase().replace(/[\s,]+/g, '');
-    const artist = foundArtists.find(a => normalize(a.lcname) === normalize(username));
+    const normalizeLc = (s: string | null | undefined) => normalizeForLookup(s ?? '');
+    const artist = foundArtists.find(a => normalizeLc(a.lcname) === normalizeLc(username));
     if (artist) {
       return {
         ...artist,

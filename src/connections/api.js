@@ -35,10 +35,16 @@ export async function fetchArtistFromName(info) {
   if (cached) return cached;
 
   console.log('fetchArtistFromName called with:', info);
-  const url = `${API}/api/artist/by-user/${encodeURIComponent(info.channel)}`;
-  console.log('Fetching artist from:', url);
-  const r = await fetch(url);
-  const artist = r.ok ? await r.json() : null;
+  // Use batch endpoint with a single username to avoid path issues with '/'
+  const url = `${API}/api/artist/batch`;
+  console.log('Fetching artist from (batch-single):', info.channel);
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ usernames: [encodeURIComponent(info.channel)] })
+  });
+  const data = r.ok ? await r.json() : { artists: [null] };
+  const artist = Array.isArray(data.artists) ? data.artists[0] : null;
   console.log('Artist API response:', artist);
   
   if (artist && !artist.error && artist.id) {
