@@ -12,7 +12,7 @@ export async function getArtistFromYTUsername(username: string) {
   console.log(username);
   const normalized = username.toLowerCase().replace(/[\s,]+/g, '');
   const result: any[] = await db.execute(
-    sql`SELECT * FROM artists WHERE lower(regexp_replace(lcname, '[\\s,]+', '', 'g')) = ${normalized} LIMIT 1`
+    sql`SELECT * FROM artists WHERE replace(replace(lower(lcname), ' ', ''), ',', '') = ${normalized} LIMIT 1`
   );
   return Array.isArray(result) && result.length > 0 ? result[0] : null;
 }
@@ -78,7 +78,7 @@ export async function getBatchArtistsFromUsernames(usernames: string[]) {
   const foundArtists: any[] = [];
   for (const term of searchTerms) {
     const result = await db.execute(
-      sql`SELECT * FROM artists WHERE lower(regexp_replace(lcname, '[\\s,]+', '', 'g')) = ${term}`
+      sql`SELECT * FROM artists WHERE replace(replace(lower(lcname), ' ', ''), ',', '') = ${term}`
     );
     if (result.length > 0) {
       foundArtists.push(result[0]);
