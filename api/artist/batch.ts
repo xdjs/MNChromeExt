@@ -22,10 +22,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Clean and decode usernames
-    const cleanUsernames = usernames.map(username => 
-      decodeURIComponent(username).toLowerCase().replace(/[,]/g, '')
-    );
+    // Clean and decode usernames with proper escaping
+    const cleanUsernames = usernames.map(username => {
+      const decoded = decodeURIComponent(username).toLowerCase().replace(/[,]/g, '');
+      // Escape special SQL characters
+      return decoded.replace(/'/g, "''"); // Escape single quotes for SQL
+    });
 
     console.log(cleanUsernames);
 
