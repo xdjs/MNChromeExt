@@ -41,7 +41,7 @@ export async function fetchArtistFromName(info) {
   const r = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ usernames: [encodeURIComponent(info.channel)] })
+    body: JSON.stringify({ usernames: [info.channel] })
   });
   const data = r.ok ? await r.json() : { artists: [null] };
   const artist = Array.isArray(data.artists) ? data.artists[0] : null;
@@ -100,13 +100,13 @@ export async function extractMultipleArtistsFromTitle(titleOrData) {
 export async function fetchMultipleArtistsByNames(artistNames) {
   if (!artistNames || artistNames.length === 0) return [];
 
-  console.log('fetchMultipleArtistsByNames called with:', artistNames.map(name => decodeURIComponent(name)));
+  console.log('fetchMultipleArtistsByNames called with:', artistNames);
   
   const url = `${API}/api/artist/batch`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ usernames: artistNames.map(name => encodeURIComponent(name)) })
+    body: JSON.stringify({ usernames: artistNames })
   });
 
   if (!response.ok) {
