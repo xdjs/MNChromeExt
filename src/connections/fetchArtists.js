@@ -36,9 +36,12 @@ export async function fetchMultipleArtists(tabId) {
     let artists = [];
   
     if (info?.id) {
+      console.log("[DEBUG] " + info.id);
       const artist = await fetchArtist(info);
-      if (artist && !artist.error && artist.id) {
+      if (artist.id) {
           artists.push({...artist, isPrimary: true});
+
+          console.log("[DEBUG] Youtube lookup successful: " + artists);
       
           if (hasCollaborationKeywords(info.title)) {
               const allArtistNames = await extractMultipleArtistsFromTitle(info);
@@ -66,7 +69,7 @@ export async function fetchMultipleArtists(tabId) {
           }
       }
     }
-  if (info?.title || artists.length === 0) {
+  if (!info?.title || artists.length === 0) {
     console.log("falling back to AI")
     const artistNames = await extractMultipleArtistsFromTitle(info);
     console.log(artistNames);
@@ -136,7 +139,7 @@ export async function fetchArtistsMediaSession() {
           }
       }
     }
-  if (info?.title && artists.length === 0) {
+  if (!info?.title && artists.length === 0) {
     console.log("falling back to AI")
     const artistNames = await extractMultipleArtistsFromTitle(info);
     console.log(artistNames);

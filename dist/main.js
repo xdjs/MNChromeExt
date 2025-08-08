@@ -276,14 +276,17 @@
   var API = "https://mn-chrome-ext.vercel.app";
   async function fetchArtist(info) {
     console.log("fetchArtist called with:", info);
-    const cached = getCachedArtist(info.id, "id");
-    if (cached) return cached;
+    const cached = await getCachedArtist(info.id, "id");
+    if (cached) {
+      console.log("[DEBUG: returning cached " + JSON.stringify(cached) + "]");
+      return cached;
+    }
     const url = `${API}/api/artist/by-id/${encodeURIComponent(info.id)}`;
     console.log("Fetching artist from:", url);
     const r = await fetch(url);
     const artist = r.ok ? await r.json() : null;
     console.log("Artist API response:", artist);
-    if (artist && !artist.error && artist.id) {
+    if (artist && artist.id) {
       const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
       const linksResponse = await fetch(linksUrl);
       artist.links = linksResponse.ok ? await linksResponse.json() : [];
@@ -292,13 +295,18 @@
     return artist;
   }
   async function fetchArtistFromName(info) {
-    const cached = getCachedArtist(info.channel);
+    const cached = await getCachedArtist(info.channel);
     if (cached) return cached;
     console.log("fetchArtistFromName called with:", info);
-    const url = `${API}/api/artist/by-user/${encodeURIComponent(info.channel)}`;
-    console.log("Fetching artist from:", url);
-    const r = await fetch(url);
-    const artist = r.ok ? await r.json() : null;
+    const url = `${API}/api/artist/batch`;
+    console.log("Fetching artist from (batch-single):", info.channel);
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usernames: [info.channel] })
+    });
+    const data = r.ok ? await r.json() : { artists: [null] };
+    const artist = Array.isArray(data.artists) ? data.artists[0] : null;
     console.log("Artist API response:", artist);
     if (artist && !artist.error && artist.id) {
       const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
@@ -322,12 +330,12 @@
   }
   async function fetchMultipleArtistsByNames(artistNames) {
     if (!artistNames || artistNames.length === 0) return [];
-    console.log("fetchMultipleArtistsByNames called with:", artistNames.map((name) => decodeURIComponent(name)));
+    console.log("fetchMultipleArtistsByNames called with:", artistNames);
     const url = `${API}/api/artist/batch`;
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ usernames: artistNames.map((name) => encodeURIComponent(name)) })
+      body: JSON.stringify({ usernames: artistNames })
     });
     if (!response.ok) {
       console.error("Batch artist fetch failed:", response.status, response.statusText);
@@ -435,9 +443,11 @@
     const info = await getYTInfo(tabId);
     let artists = [];
     if (info?.id) {
+      console.log("[DEBUG] " + info.id);
       const artist = await fetchArtist(info);
-      if (artist && !artist.error && artist.id) {
+      if (artist.id) {
         artists.push({ ...artist, isPrimary: true });
+        console.log("[DEBUG] Youtube lookup successful: " + artists);
         if (hasCollaborationKeywords(info.title)) {
           const allArtistNames = await extractMultipleArtistsFromTitle(info);
           const newNames = allArtistNames.filter(
@@ -457,7 +467,7 @@
         }
       }
     }
-    if (info?.title || artists.length === 0) {
+    if (!info?.title || artists.length === 0) {
       console.log("falling back to AI");
       const artistNames = await extractMultipleArtistsFromTitle(info);
       console.log(artistNames);
@@ -505,7 +515,7 @@
         }
       }
     }
-    if (info?.title && artists.length === 0) {
+    if (!info?.title && artists.length === 0) {
       console.log("falling back to AI");
       const artistNames = await extractMultipleArtistsFromTitle(info);
       console.log(artistNames);

@@ -7,8 +7,10 @@ export async function fetchArtist(info) {
 
   console.log('fetchArtist called with:', info);
 
-  const cached = getCachedArtist(info.id, 'id');
-  if (cached) return cached;
+  const cached = await getCachedArtist(info.id, 'id');
+  if (cached) {console.log("[DEBUG: returning cached " + JSON.stringify(cached) + "]"); return cached;}
+
+    
 
   const url = `${API}/api/artist/by-id/${encodeURIComponent(info.id)}`
   console.log('Fetching artist from:', url);
@@ -16,7 +18,7 @@ export async function fetchArtist(info) {
   const artist = r.ok ? await r.json() : null;
   console.log('Artist API response:', artist);
   
-  if (artist && !artist.error && artist.id) {
+  if (artist && artist.id) {
     // Fetch links for this artist using the correct endpoint
     const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
     const linksResponse = await fetch(linksUrl);
@@ -31,7 +33,7 @@ export async function fetchArtist(info) {
 export async function fetchArtistFromName(info) {
 
   // Check cache first
-  const cached = getCachedArtist(info.channel);
+  const cached = await getCachedArtist(info.channel);
   if (cached) return cached;
 
   console.log('fetchArtistFromName called with:', info);
