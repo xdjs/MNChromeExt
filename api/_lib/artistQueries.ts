@@ -1,4 +1,4 @@
-import { eq, inArray, or, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { db } from './db.js';
 import { artists, urlmap } from '../../src/backend/server/db/schema.js';
 
@@ -8,11 +8,13 @@ export function getArtistFromYTid(ytId: string) {
   });
 }
 
-export function getArtistFromYTUsername(username: string) {
-    console.log(username);
-  return db.query.artists.findFirst({
-    where: eq(artists.lcname, username.toLowerCase())
-  });
+export async function getArtistFromYTUsername(username: string) {
+  console.log(username);
+  const normalized = username.toLowerCase().replace(/[\s,]+/g, '');
+  const result: any[] = await db.execute(
+    sql`SELECT * FROM artists WHERE lower(regexp_replace(lcname, '[\\s,]+', '', 'g')) = ${normalized} LIMIT 1`
+  );
+  return Array.isArray(result) && result.length > 0 ? result[0] : null;
 }
 
 export function getArtistFromId(id: string) {
@@ -69,18 +71,19 @@ export async function getMainUrls(artist: any) {
 export async function getBatchArtistsFromUsernames(usernames: string[]) {
   if (usernames.length === 0) return [];
 
-  // Search for both formats: with spaces and without spaces (for data inconsistency)
-  const searchTerms = usernames.map(u => u.toLowerCase());
-  const conditions: any[] = [];
+  // Get all artists using raw SQL for proper special character handling
+  const searchTerms = usernames.map(u => u.toLowerCase().replace(/[\s,]+/g, ''));
   
+  // Use individual queries as fallback for special characters
+  const foundArtists: any[] = [];
   for (const term of searchTerms) {
-    conditions.push(eq(artists.lcname, term)); // Original term
-    conditions.push(eq(artists.lcname, term.replace(/\s/g, ''))); // Without spaces
+    const result = await db.execute(
+      sql`SELECT * FROM artists WHERE lower(regexp_replace(lcname, '[\\s,]+', '', 'g')) = ${term}`
+    );
+    if (result.length > 0) {
+      foundArtists.push(result[0]);
+    }
   }
-  
-  const foundArtists = await db.query.artists.findMany({
-    where: or(...conditions)
-  });
 
   // Get all artist IDs for batch link fetching
   const artistIds = foundArtists.map(artist => artist.id).filter(Boolean);
@@ -101,7 +104,8 @@ export async function getBatchArtistsFromUsernames(usernames: string[]) {
 
   // Map results back to requested usernames, preserving order
   const results = usernames.map(username => {
-    const artist = foundArtists.find(a => a.lcname === username.toLowerCase());
+    const normalize = (s: string | null | undefined) => (s ?? '').toLowerCase().replace(/[\s,]+/g, '');
+    const artist = foundArtists.find(a => normalize(a.lcname) === normalize(username));
     if (artist) {
       return {
         ...artist,
