@@ -72,10 +72,14 @@ export async function getBatchArtistsFromUsernames(usernames: string[]) {
   // Get all artists using raw SQL for proper special character handling
   const searchTerms = usernames.map(u => u.toLowerCase());
   
-  // Use raw SQL with proper parameterization to handle special characters
-  const foundArtists = await db.execute(
-    sql`SELECT * FROM artists WHERE lcname IN (${sql.join(searchTerms.map(term => sql`${term}`), sql`, `)})`
-  );
+  // Use individual queries as fallback for special characters
+  const foundArtists: any[] = [];
+  for (const term of searchTerms) {
+    const result = await db.execute(sql`SELECT * FROM artists WHERE lcname = ${term}`);
+    if (result.length > 0) {
+      foundArtists.push(result[0]);
+    }
+  }
 
   // Get all artist IDs for batch link fetching
   const artistIds = foundArtists.map(artist => artist.id).filter(Boolean);
