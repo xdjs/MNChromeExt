@@ -5,7 +5,7 @@
   "description": "A template project for building Chrome extensions using Manifest V3.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node scripts/searchArtistTest.js",
     "build:css": "npx tailwindcss -i src/styles/tailwind.css -o popup.css --minify --postcss",
     "build": "node build.js",
     "build:local": "npm run build:css && node build.js",
