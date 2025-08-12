@@ -10,7 +10,7 @@ export function scrapeYTInfo(tabId) {
     });
 }
 
-export async function getMediaSessionInfo(tabId) {
+export async function getMediaSessionInfo() {
 try {
   const tabs = await chrome.tabs.query({});
   

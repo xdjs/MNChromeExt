@@ -352,7 +352,7 @@
       chrome.tabs.sendMessage(tabId, { type: "GET_YT_INFO" }, res);
     });
   }
-  async function getMediaSessionInfo(tabId) {
+  async function getMediaSessionInfo() {
     try {
       const tabs = await chrome.tabs.query({});
       const promises = tabs.map(
