@@ -2,8 +2,8 @@ import axios from 'axios';
 
 async function main() {
   const url = 'https://api.musicnerd.xyz/api/searchArtists/batch/';
-  const payload = { query: "a$ap rocky"};
-
+  const payload = {"query": {"artists": ['A$AP Rocky', 'k/da']} };
+  // const payload = {query: 'a$ap rocky'};
   try {
     const response = await axios.post(url, payload, {
       headers: {
