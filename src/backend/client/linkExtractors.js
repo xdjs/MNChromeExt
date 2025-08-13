@@ -1,4 +1,4 @@
-export function getVideoId(url: string): string | null {
+export function getVideoId(url) {
     const patterns = [
         /v=([^&]+)/,
         /youtu\.be\/([^?&]+)/,

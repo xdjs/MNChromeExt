@@ -1,5 +1,5 @@
 const API = 'https://mn-chrome-ext.vercel.app';
-import { cacheArtist, getCachedArtist } from './cache.js';
+import { cacheArtist, getCachedArtist } from '../backend/client/cache.js';
 
 
 
@@ -7,8 +7,10 @@ export async function fetchArtist(info) {
 
   console.log('fetchArtist called with:', info);
 
-  const cached = getCachedArtist(info.id, 'id');
-  if (cached) return cached;
+  const cached = await getCachedArtist(info.id, 'id');
+  if (cached) {console.log("[DEBUG: returning cached " + JSON.stringify(cached) + "]"); return cached;}
+
+    
 
   const url = `${API}/api/artist/by-id/${encodeURIComponent(info.id)}`
   console.log('Fetching artist from:', url);
@@ -16,7 +18,7 @@ export async function fetchArtist(info) {
   const artist = r.ok ? await r.json() : null;
   console.log('Artist API response:', artist);
   
-  if (artist && !artist.error && artist.id) {
+  if (artist && artist.id) {
     // Fetch links for this artist using the correct endpoint
     const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
     const linksResponse = await fetch(linksUrl);
@@ -31,14 +33,20 @@ export async function fetchArtist(info) {
 export async function fetchArtistFromName(info) {
 
   // Check cache first
-  const cached = getCachedArtist(info.channel);
+  const cached = await getCachedArtist(info.channel);
   if (cached) return cached;
 
   console.log('fetchArtistFromName called with:', info);
-  const url = `${API}/api/artist/by-user/${encodeURIComponent(info.channel)}`;
-  console.log('Fetching artist from:', url);
-  const r = await fetch(url);
-  const artist = r.ok ? await r.json() : null;
+  // Use batch endpoint with a single username to avoid path issues with '/'
+  const url = `${API}/api/artist/batch`;
+  console.log('Fetching artist from (batch-single):', info.channel);
+  const r = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ usernames: [info.channel] })
+  });
+  const data = r.ok ? await r.json() : { artists: [null] };
+  const artist = Array.isArray(data.artists) ? data.artists[0] : null;
   console.log('Artist API response:', artist);
   
   if (artist && !artist.error && artist.id) {
@@ -110,6 +118,7 @@ export async function fetchMultipleArtistsByNames(artistNames) {
 
   const data = await response.json();
   console.log('Batch artist API response:', data);
+  
   
   // Return array of artists (some may be null for not found)
   return data.artists || [];

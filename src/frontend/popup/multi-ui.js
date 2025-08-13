@@ -9,12 +9,6 @@ export function renderArtists(artists) {
     console.log('renderArtists called with:', artists);
     artistList = artists;
 
-    // Handle edge cases
-  if (!artists || artists.length === 0) {
-    console.log('No artists found, showing error message');
-    document.body.textContent = 'Artist not found';
-    return;
-  }
   
   // Single artist - use existing UI
   if (artists.length === 1) {

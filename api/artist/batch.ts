@@ -22,10 +22,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Clean and decode usernames
+    // Clean usernames (no URL decoding needed; body is JSON)
     const cleanUsernames = usernames.map(username => 
-      decodeURIComponent(username).replace(/[\s,]/g, '')
+      (username ?? '').toLowerCase().replace(/[\s,]/g, '')
     );
+
+    console.log(cleanUsernames);
 
     const artists = await getBatchArtistsFromUsernames(cleanUsernames);
     res.status(200).json({ artists });
