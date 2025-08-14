@@ -120,78 +120,47 @@ export async function fetchMultipleArtistsByNames(artistNames) {
   if (!artistNames || artistNames.length === 0) return [];
 
   console.log('fetchMultipleArtistsByNames called with:', artistNames);
-
-  // Try cache by input name first (consistent with fetchArtistFromName)
-  const cachedByName = await Promise.all(
-    artistNames.map((name) => getCachedArtist(name))
-  );
-
-  const finalResults = new Array(artistNames.length).fill(null);
-  const namesToFetch = [];
-  const fetchIndexMap = [];
-
-  cachedByName.forEach((cached, index) => {
-    if (cached) {
-      finalResults[index] = cached;
-    } else {
-      namesToFetch.push(artistNames[index]);
-      fetchIndexMap.push(index);
-    }
+  
+  const url = `https://api.musicnerd.xyz/api/searchArtists/batch`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+    body: JSON.stringify({ query: { artists: artistNames } })
   });
 
-  if (namesToFetch.length > 0) {
-    const url = `https://api.musicnerd.xyz/api/searchArtists/batch`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
-      body: JSON.stringify({ query: { artists: namesToFetch } })
-    });
-
-    if (!response.ok) {
-      console.error('Batch artist fetch failed:', response.status, response.statusText);
-      // Return whatever was in cache
-      return finalResults.filter((x) => x != null);
-    }
-
-    const data = await response.json();
-    const results = Array.isArray(data.results) ? data.results : [];
-    console.log('Batch artist API response:', data);
-
-    const enriched = await Promise.all(results.map(async (artist) => {
-      if (!artist || !artist.id) return artist;
-      const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
-      const bioUrl = `https://api.musicnerd.xyz/api/artistBio/${encodeURIComponent(artist.id)}`;
-
-      const [linksRes, bioRes] = await Promise.all([
-        fetch(linksUrl),
-        fetch(bioUrl, { headers: { Accept: 'application/json' } })
-      ]);
-
-      const links = linksRes.ok ? await linksRes.json() : [];
-      let bio = null;
-      if (bioRes.ok) {
-        const bioJson = await bioRes.json();
-        bio = typeof bioJson === 'string' ? bioJson : (bioJson?.bio ?? bioJson?.text ?? null);
-      }
-      return { ...artist, links, bio };
-    }));
-
-    // Put results back in original order and cache by input name
-    await Promise.all(enriched.map(async (artist, i) => {
-      const origIndex = fetchIndexMap[i];
-      finalResults[origIndex] = artist;
-      const nameKey = artistNames[origIndex];
-      if (artist && nameKey) {
-        try {
-          await cacheArtist(nameKey, artist);
-        } catch (e) {
-          console.warn('Cache save failed', e);
-        }
-      }
-    }));
+  if (!response.ok) {
+    console.error('Batch artist fetch failed:', response.status, response.statusText);
+    return [];
   }
 
-  return finalResults;
+  const data = await response.json();
+  const results = Array.isArray(data.results) ? data.results : [];
+  console.log('Batch artist API response:', data);
+
+  const filtered = results.filter(a =>
+    a && a.id && a.matchScore != 0
+  );
+  
+  const withLinks = await Promise.all(results.map(async (artist) => {
+        if (!artist || !artist.id) return artist;
+        const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
+        const bioUrl = `https://api.musicnerd.xyz/api/artistBio/${encodeURIComponent(artist.id)}`;
+      
+        const [linksRes, bioRes] = await Promise.all([
+          fetch(linksUrl),
+          fetch(bioUrl, {
+            method: 'GET',
+            headers: { Accept: 'application/json' },
+          })
+        ]);
+      
+        const links = linksRes.ok ? await linksRes.json() : [];
+        const bio = bioRes.ok ? await bioRes.json() : null;
+      
+        return { ...artist, links, bio};
+    }));
+
+    return withLinks;
   
 }
 

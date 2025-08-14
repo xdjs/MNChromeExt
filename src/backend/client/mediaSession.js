@@ -49,16 +49,33 @@ export function detectMediaSession() {
 
 
 export async function watchForMediaSession() {
+    if (window.__mn_watch_started) return;
+    window.__mn_watch_started = true;
     if (!('mediaSession' in navigator)) return;
 
     let lastMetaData = null;
+    let lastSignature = null;
 
     const checkMediaSession = () => {
         if (isExtensionValid()) {
             const data = navigator.mediaSession.metadata;
             const state = navigator.mediaSession.playbackState;
-            if (JSON.stringify(data) != JSON.stringify(lastMetaData) && state == 'playing') {
+            const signature = JSON.stringify({
+                title: data?.title || '',
+                artist: data?.artist || '',
+                album: data?.album || ''
+            });
+            const hasChanged = signature !== lastSignature;
+            if (hasChanged && state === 'playing') {
                 lastMetaData = JSON.stringify(data);
+                lastSignature = signature;
+
+                // simple throttle: avoid calling preLoad too frequently
+                const now = Date.now();
+                if (window.__mn_last_preload_ts && now - window.__mn_last_preload_ts < 4000) {
+                    return;
+                }
+                window.__mn_last_preload_ts = now;
     
                 chrome.runtime.sendMessage({
                     action: 'musicDetected',
@@ -70,11 +87,7 @@ export async function watchForMediaSession() {
             }
             else {
                 lastMetaData = JSON.stringify(data);
-                chrome.runtime.sendMessage({
-                    action: 'musicPaused',
-    
-                    data: detectMediaSession()
-                });
+                lastSignature = signature;
             }
         }
         
