@@ -26,9 +26,10 @@
   "permissions": ["activeTab", "storage"],
   "host_permissions": [
     "https://mn-chrome-ext.vercel.app/*",
-    "https://www.googleapis.com/*"
+    "https://www.googleapis.com/*",
+    "https://api.musicnerd.xyz/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.vercel.app https://*.googleapis.com"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.vercel.app https://*.googleapis.com https://api.musicnerd.xyz"
   }
 } 

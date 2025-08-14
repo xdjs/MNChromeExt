@@ -17,8 +17,12 @@ export function detectMediaSession() {
         return null;
     }
 
+    
+
     const data = navigator.mediaSession.metadata;
     const playbackState = navigator.mediaSession.playbackState;
+
+    
 
 
     // Be less strict - check for any metadata, not just playing state
@@ -26,7 +30,7 @@ export function detectMediaSession() {
         return null;
     }
 
-    // Allow any playback state, not just 'playing'
+
     if (!data) {
         console.log('No useful media session data (no title or artist)');
         return null;
@@ -44,13 +48,13 @@ export function detectMediaSession() {
 }
 
 
-export function watchForMediaSession() {
+export async function watchForMediaSession() {
     if (!('mediaSession' in navigator)) return;
 
     let lastMetaData = null;
 
     const checkMediaSession = () => {
-        if (isExtensionValid) {
+        if (isExtensionValid()) {
             const data = navigator.mediaSession.metadata;
             const state = navigator.mediaSession.playbackState;
             if (JSON.stringify(data) != JSON.stringify(lastMetaData) && state == 'playing') {

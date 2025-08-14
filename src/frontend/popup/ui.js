@@ -46,7 +46,7 @@ export function renderArtist(a){
     
 
     titleEl.textContent = a.name ?? "Sorry, we don't know this artist!";
-    bioEl.textContent = a.bio ?? "No bio Available";
+    bioEl.textContent = typeof a.bio === 'string' ? a.bio : (a.bio?.bio ?? a.bio?.text ?? "No bio Available");
     if (!a.id) {
         bioEl.textContent = "";
     }
