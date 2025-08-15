@@ -111,36 +111,6 @@ export async function fetchArtistsMediaSession() {
 
   let artists = [];
   
-  if (info?.title) {
-
-      const artist = await fetchArtistFromName(info);
-      if (artist && !artist.error && artist.id) {
-          artists.push({...artist, isPrimary: true});
-      
-          if (hasCollaborationKeywords(info.title)) {
-              const allArtistNames = await extractMultipleArtistsFromTitle(info);
-              const newNames = allArtistNames.filter(name =>
-                  name.toLowerCase() !== artist.name.toLowerCase()
-              );
-  
-              if (newNames.length > 0) {
-                  const newArtists = await fetchMultipleArtistsByNames(newNames);
-                  const validArtists = newArtists
-                      .filter(artist => artist && !artist.error && artist.id)
-                      .map(artist => ({...artist, isPrimary: false}));
-                  
-                  artists.push(...validArtists);
-              }
-          }   
-          
-          // Only return early if we found at least one artist
-          if (artists.length > 0) {
-            return artists;
-          }
-      }
-    }
-  if (!info?.title && artists.length === 0) {
-    console.log("falling back to AI")
     const artistNames = await extractMultipleArtistsFromTitle(info);
     console.log(artistNames);
     
@@ -154,7 +124,6 @@ export async function fetchArtistsMediaSession() {
 
       cacheMediaSessionResult(info, artists);
     }
-  }
   console.log("returning artists...")
   
   return artists;

@@ -49,19 +49,15 @@ function showArtistTabs(artists) {
         rgba(255,255,255,1) 100%
         )`;
         tab.style.padding = '8px';
+        
         tabsList.appendChild(tab);
+        
     });
 
     tabsContainer.style.display = 'flex';
     tabsContainer.style.overflowX = 'auto';
     tabsContainer.style.whiteSpace = 'nowrap';
-    tab.style.background = `linear-gradient(to bottom, 
-    rgba(255,255,255,0) 0%, 
-    rgba(255,255,255,0.2) 30%, 
-    rgba(255,255,255,0.8) 80%, 
-    rgba(255,255,255,1) 100%
-    )`;
-    tab.style.padding = '8px';
+
 }
 
 function hideArtistTabs() {

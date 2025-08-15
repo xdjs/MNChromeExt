@@ -67,7 +67,7 @@ export function renderArtist(a){
       titleEl.style.borderRadius = '8px';
       titleEl.style.padding = '16px';
       titleEl.style.boxShadow= '0 2px 8px rgba(0, 0, 0, 0.1)';
-      titleEl.style.backdropFilter = 'blur(10px)';
+      titleEl.style.backdropFilter = 'blur(5px)';
       bioEl.style.textTransform = 'none';
 
 
@@ -103,6 +103,9 @@ export function renderArtist(a){
         a.links.forEach(l => {
           const li = document.createElement('li');
 
+
+
+
           // Create clickable link wrapper
           const linkWrapper = document.createElement('a');
           linkWrapper.href = l.url ?? l.href ?? '#';
@@ -111,14 +114,30 @@ export function renderArtist(a){
           linkWrapper.style.borderRadius = '8px';
           linkWrapper.style.padding = '8px';
           linkWrapper.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-          linkWrapper.style.backdropFilter = 'blur(10px)';
+          linkWrapper.style.backdropFilter = 'blur(5px)';
           linkWrapper.style.marginBottom = '8px';
           linkWrapper.className = 'flex items-center gap-3 hover:bg-gray-50 p-2 rounded';
           linksListEl.style.gap = '4px'; // Custom spacing
+
+          linkWrapper.addEventListener('mouseenter', () => {
+            linkWrapper.style.transform = 'scale(1.1)';
+            linkWrapper.style.transition = 'transform 0.3s ease';
+          });
+
+          linkWrapper.addEventListener('mouseleave', () => {
+            linkWrapper.style.transform = 'scale(1.0)';
+            linkWrapper.style.transition = 'transform 0.3s ease';
+          });
+
+
+
           
           const label = document.createElement('p');
           label.className = 'font-semibold uppercase text-sm text-blue-600 hover:text-blue-800';
           label.textContent = l.label ?? l.title ?? 'Link';
+
+
+
 
           const url = document.createElement('p');
           url.className = 'text-sm text-gray-500 truncate';

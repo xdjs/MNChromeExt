@@ -47,7 +47,7 @@
       titleEl.style.borderRadius = "8px";
       titleEl.style.padding = "16px";
       titleEl.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
-      titleEl.style.backdropFilter = "blur(10px)";
+      titleEl.style.backdropFilter = "blur(5px)";
       bioEl.style.textTransform = "none";
     }
     if (!a.id) {
@@ -73,10 +73,18 @@
           linkWrapper.style.borderRadius = "8px";
           linkWrapper.style.padding = "8px";
           linkWrapper.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
-          linkWrapper.style.backdropFilter = "blur(10px)";
+          linkWrapper.style.backdropFilter = "blur(5px)";
           linkWrapper.style.marginBottom = "8px";
           linkWrapper.className = "flex items-center gap-3 hover:bg-gray-50 p-2 rounded";
           linksListEl.style.gap = "4px";
+          linkWrapper.addEventListener("mouseenter", () => {
+            linkWrapper.style.transform = "scale(1.1)";
+            linkWrapper.style.transition = "transform 0.3s ease";
+          });
+          linkWrapper.addEventListener("mouseleave", () => {
+            linkWrapper.style.transform = "scale(1.0)";
+            linkWrapper.style.transition = "transform 0.3s ease";
+          });
           const label = document.createElement("p");
           label.className = "font-semibold uppercase text-sm text-blue-600 hover:text-blue-800";
           label.textContent = l.label ?? l.title ?? "Link";
@@ -177,30 +185,23 @@
     const tabsList = document.getElementById("tabs-list");
     tabsList.innerHTML = "";
     artists.forEach((artist, index) => {
-      const tab2 = document.createElement("button");
-      tab2.className = `px-4 py-2 text-sm font-medium border-b-2 transition-colors ${index === activeArtistIndex ? "border-blue-500 text-blue-600 bg-blue-50" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`;
+      const tab = document.createElement("button");
+      tab.className = `px-4 py-2 text-sm font-medium border-b-2 transition-colors ${index === activeArtistIndex ? "border-blue-500 text-blue-600 bg-blue-50" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`;
       const displayName = artist.name || "Unknown artist";
-      tab2.textContent = artist.isPrimary ? `${displayName} \u2B50` : displayName;
-      tab2.addEventListener("click", () => switchToArtist(index));
-      tab2.style.background = `linear-gradient(to bottom, 
+      tab.textContent = artist.isPrimary ? `${displayName} \u2B50` : displayName;
+      tab.addEventListener("click", () => switchToArtist(index));
+      tab.style.background = `linear-gradient(to bottom, 
         rgba(255,255,255,0) 0%, 
         rgba(255,255,255,0.2) 30%, 
         rgba(255,255,255,0.8) 80%, 
         rgba(255,255,255,1) 100%
         )`;
-      tab2.style.padding = "8px";
-      tabsList.appendChild(tab2);
+      tab.style.padding = "8px";
+      tabsList.appendChild(tab);
     });
     tabsContainer.style.display = "flex";
     tabsContainer.style.overflowX = "auto";
     tabsContainer.style.whiteSpace = "nowrap";
-    tab.style.background = `linear-gradient(to bottom, 
-    rgba(255,255,255,0) 0%, 
-    rgba(255,255,255,0.2) 30%, 
-    rgba(255,255,255,0.8) 80%, 
-    rgba(255,255,255,1) 100%
-    )`;
-    tab.style.padding = "8px";
   }
   function hideArtistTabs() {
     const tabsContainer = document.getElementById("artist-tabs");
@@ -216,19 +217,19 @@
   }
   function updateTabStyles() {
     const tabs = document.querySelectorAll("#tabs-list button");
-    tabs.forEach((tab2, index) => {
+    tabs.forEach((tab, index) => {
       if (index === activeArtistIndex) {
-        tab2.className = "px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600 bg-blue-50 transition-colors";
+        tab.className = "px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600 bg-blue-50 transition-colors";
       } else {
-        tab2.className = "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors";
+        tab.className = "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors";
       }
-      tab2.style.background = `linear-gradient(to bottom, 
+      tab.style.background = `linear-gradient(to bottom, 
     rgba(255,255,255,0) 0%, 
     rgba(255,255,255,0.2) 30%, 
     rgba(255,255,255,0.8) 80%, 
     rgba(255,255,255,1) 100%
     )`;
-      tab2.style.padding = "8px";
+      tab.style.padding = "8px";
     });
   }
   function renderActiveArtist() {
@@ -356,53 +357,6 @@
     }
     return artist;
   }
-  async function fetchArtistFromName(info) {
-    const cached = await getCachedArtist(info.channel);
-    if (cached) return cached;
-    console.log("fetchArtistFromName called with:", info);
-    const url = `https://api.musicnerd.xyz/api/searchArtists/batch`;
-    console.log("Fetching artist from (batch-single):", info.channel);
-    const r = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({ query: { artists: [info.channel] } })
-    });
-    const data = r.ok ? await r.json() : { artists: [null] };
-    const artist = Array.isArray(data.results) ? data.results[0] : null;
-    console.log("Artist API response:", artist);
-    if (artist.matchScore != 0) {
-      return null;
-    }
-    if (artist && !artist.error && artist.id) {
-      const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
-      const linksResponse = await fetch(linksUrl);
-      artist.links = linksResponse.ok ? await linksResponse.json() : [];
-      try {
-        const bioRes = await fetch(`https://api.musicnerd.xyz/api/artistBio/${encodeURIComponent(artist.id)}`, {
-          headers: { Accept: "application/json" }
-        });
-        if (bioRes.ok) {
-          const bioJson = await bioRes.json();
-          artist.bio = typeof bioJson === "string" ? bioJson : bioJson?.bio ?? bioJson?.text ?? null;
-        } else {
-          artist.bio = null;
-        }
-      } catch {
-        artist.bio = null;
-      }
-      try {
-        const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
-        const spotifyRes = await fetch(spotifyUrl);
-        if (spotifyRes.ok) {
-          artist.spotifyData = await spotifyRes.json();
-        }
-      } catch {
-        artist.spotifyData = null;
-      }
-      cacheArtist(info.channel, artist);
-    }
-    return artist;
-  }
   async function extractMultipleArtistsFromTitle(titleOrData) {
     const url = `${API}/api/openai/extract-multiple-artists`;
     const requestBody = typeof titleOrData === "string" ? { title: titleOrData } : { data: titleOrData };
@@ -468,8 +422,8 @@
     try {
       const tabs = await chrome.tabs.query({});
       const promises = tabs.map(
-        (tab2) => new Promise((resolve) => {
-          chrome.tabs.sendMessage(tab2.id, { action: "checkMediaSession" }, (response) => {
+        (tab) => new Promise((resolve) => {
+          chrome.tabs.sendMessage(tab.id, { action: "checkMediaSession" }, (response) => {
             if (chrome.runtime.lastError) {
               resolve(null);
             } else {
@@ -540,10 +494,10 @@
     return null;
   }
   async function fetchMultipleArtists(tabId) {
-    const [tab2] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     let videoId = null;
-    if (tab2?.url) {
-      videoId = getVideoIdFromUrl(tab2.url);
+    if (tab?.url) {
+      videoId = getVideoIdFromUrl(tab.url);
       if (videoId) {
         const cached = await getCachedVideoResult(videoId);
         if (cached) {
@@ -607,36 +561,13 @@
       return cached;
     }
     let artists = [];
-    if (info?.title) {
-      const artist = await fetchArtistFromName(info);
-      if (artist && !artist.error && artist.id) {
-        artists.push({ ...artist, isPrimary: true });
-        if (hasCollaborationKeywords(info.title)) {
-          const allArtistNames = await extractMultipleArtistsFromTitle(info);
-          const newNames = allArtistNames.filter(
-            (name) => name.toLowerCase() !== artist.name.toLowerCase()
-          );
-          if (newNames.length > 0) {
-            const newArtists = await fetchMultipleArtistsByNames(newNames);
-            const validArtists = newArtists.filter((artist2) => artist2 && !artist2.error && artist2.id).map((artist2) => ({ ...artist2, isPrimary: false }));
-            artists.push(...validArtists);
-          }
-        }
-        if (artists.length > 0) {
-          return artists;
-        }
-      }
-    }
-    if (!info?.title && artists.length === 0) {
-      console.log("falling back to AI");
-      const artistNames = await extractMultipleArtistsFromTitle(info);
-      console.log(artistNames);
-      if (artistNames.length > 0) {
-        const foundArtists = await fetchMultipleArtistsByNames(artistNames);
-        const validArtists = foundArtists.filter((artist) => artist && !artist.error && artist.id).map((artist) => ({ ...artist, isPrimary: false }));
-        artists.push(...validArtists);
-        cacheMediaSessionResult(info, artists);
-      }
+    const artistNames = await extractMultipleArtistsFromTitle(info);
+    console.log(artistNames);
+    if (artistNames.length > 0) {
+      const foundArtists = await fetchMultipleArtistsByNames(artistNames);
+      const validArtists = foundArtists.filter((artist) => artist && !artist.error && artist.id).map((artist) => ({ ...artist, isPrimary: false }));
+      artists.push(...validArtists);
+      cacheMediaSessionResult(info, artists);
     }
     console.log("returning artists...");
     return artists;
@@ -644,13 +575,14 @@
 
   // src/frontend/popup/main.js
   document.addEventListener("DOMContentLoaded", async () => {
-    const [tab2] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!await isContentScriptReady(tab2.id)) {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!await isContentScriptReady(tab.id)) {
       errorScreen("notInjected");
       return;
     }
-    if (!tab2.url.includes("youtube.com/watch") && !tab2.url.includes("music.youtube.com")) {
+    if (!tab.url.includes("youtube.com/watch") && !tab.url.includes("music.youtube.com")) {
       const artists2 = await fetchArtistsMediaSession();
+      console.log("found artists, rendering: " + artists2.length + " artists");
       if (artists2.length > 0 && artists2 != "noMediaSession") {
         renderArtists(artists2);
       } else {
@@ -668,7 +600,7 @@
       }
       return;
     }
-    const artists = await fetchMultipleArtists(tab2.id);
+    const artists = await fetchMultipleArtists(tab.id);
     console.log("rendering multiple artists");
     console.log(artists);
     if (artists.length > 0) {
