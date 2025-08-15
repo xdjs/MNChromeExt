@@ -177,14 +177,30 @@
     const tabsList = document.getElementById("tabs-list");
     tabsList.innerHTML = "";
     artists.forEach((artist, index) => {
-      const tab = document.createElement("button");
-      tab.className = `px-4 py-2 text-sm font-medium border-b-2 transition-colors ${index === activeArtistIndex ? "border-blue-500 text-blue-600 bg-blue-50" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`;
+      const tab2 = document.createElement("button");
+      tab2.className = `px-4 py-2 text-sm font-medium border-b-2 transition-colors ${index === activeArtistIndex ? "border-blue-500 text-blue-600 bg-blue-50" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"}`;
       const displayName = artist.name || "Unknown artist";
-      tab.textContent = artist.isPrimary ? `${displayName} \u2B50` : displayName;
-      tab.addEventListener("click", () => switchToArtist(index));
-      tabsList.appendChild(tab);
+      tab2.textContent = artist.isPrimary ? `${displayName} \u2B50` : displayName;
+      tab2.addEventListener("click", () => switchToArtist(index));
+      tab2.style.background = `linear-gradient(to bottom, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.2) 30%, 
+        rgba(255,255,255,0.8) 80%, 
+        rgba(255,255,255,1) 100%
+        )`;
+      tab2.style.padding = "8px";
+      tabsList.appendChild(tab2);
     });
-    tabsContainer.style.display = "block";
+    tabsContainer.style.display = "flex";
+    tabsContainer.style.overflowX = "auto";
+    tabsContainer.style.whiteSpace = "nowrap";
+    tab.style.background = `linear-gradient(to bottom, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.2) 30%, 
+    rgba(255,255,255,0.8) 80%, 
+    rgba(255,255,255,1) 100%
+    )`;
+    tab.style.padding = "8px";
   }
   function hideArtistTabs() {
     const tabsContainer = document.getElementById("artist-tabs");
@@ -200,12 +216,19 @@
   }
   function updateTabStyles() {
     const tabs = document.querySelectorAll("#tabs-list button");
-    tabs.forEach((tab, index) => {
+    tabs.forEach((tab2, index) => {
       if (index === activeArtistIndex) {
-        tab.className = "px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600 bg-blue-50 transition-colors";
+        tab2.className = "px-4 py-2 text-sm font-medium border-b-2 border-blue-500 text-blue-600 bg-blue-50 transition-colors";
       } else {
-        tab.className = "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors";
+        tab2.className = "px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors";
       }
+      tab2.style.background = `linear-gradient(to bottom, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.2) 30%, 
+    rgba(255,255,255,0.8) 80%, 
+    rgba(255,255,255,1) 100%
+    )`;
+      tab2.style.padding = "8px";
     });
   }
   function renderActiveArtist() {
@@ -445,8 +468,8 @@
     try {
       const tabs = await chrome.tabs.query({});
       const promises = tabs.map(
-        (tab) => new Promise((resolve) => {
-          chrome.tabs.sendMessage(tab.id, { action: "checkMediaSession" }, (response) => {
+        (tab2) => new Promise((resolve) => {
+          chrome.tabs.sendMessage(tab2.id, { action: "checkMediaSession" }, (response) => {
             if (chrome.runtime.lastError) {
               resolve(null);
             } else {
@@ -517,10 +540,10 @@
     return null;
   }
   async function fetchMultipleArtists(tabId) {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab2] = await chrome.tabs.query({ active: true, currentWindow: true });
     let videoId = null;
-    if (tab?.url) {
-      videoId = getVideoIdFromUrl(tab.url);
+    if (tab2?.url) {
+      videoId = getVideoIdFromUrl(tab2.url);
       if (videoId) {
         const cached = await getCachedVideoResult(videoId);
         if (cached) {
@@ -621,12 +644,12 @@
 
   // src/frontend/popup/main.js
   document.addEventListener("DOMContentLoaded", async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!await isContentScriptReady(tab.id)) {
+    const [tab2] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!await isContentScriptReady(tab2.id)) {
       errorScreen("notInjected");
       return;
     }
-    if (!tab.url.includes("youtube.com/watch") && !tab.url.includes("music.youtube.com")) {
+    if (!tab2.url.includes("youtube.com/watch") && !tab2.url.includes("music.youtube.com")) {
       const artists2 = await fetchArtistsMediaSession();
       if (artists2.length > 0 && artists2 != "noMediaSession") {
         renderArtists(artists2);
@@ -645,7 +668,7 @@
       }
       return;
     }
-    const artists = await fetchMultipleArtists(tab.id);
+    const artists = await fetchMultipleArtists(tab2.id);
     console.log("rendering multiple artists");
     console.log(artists);
     if (artists.length > 0) {

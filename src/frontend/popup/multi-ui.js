@@ -42,10 +42,26 @@ function showArtistTabs(artists) {
         tab.textContent = artist.isPrimary ? `${displayName} ⭐` : displayName;
 
         tab.addEventListener('click', () => switchToArtist(index));
+        tab.style.background = `linear-gradient(to bottom, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.2) 30%, 
+        rgba(255,255,255,0.8) 80%, 
+        rgba(255,255,255,1) 100%
+        )`;
+        tab.style.padding = '8px';
         tabsList.appendChild(tab);
     });
 
-    tabsContainer.style.display = 'block';
+    tabsContainer.style.display = 'flex';
+    tabsContainer.style.overflowX = 'auto';
+    tabsContainer.style.whiteSpace = 'nowrap';
+    tab.style.background = `linear-gradient(to bottom, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.2) 30%, 
+    rgba(255,255,255,0.8) 80%, 
+    rgba(255,255,255,1) 100%
+    )`;
+    tab.style.padding = '8px';
 }
 
 function hideArtistTabs() {
@@ -71,6 +87,14 @@ function updateTabStyles() {
     } else {
       tab.className = 'px-4 py-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors';
     }
+    tab.style.background = `linear-gradient(to bottom, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.2) 30%, 
+    rgba(255,255,255,0.8) 80%, 
+    rgba(255,255,255,1) 100%
+    )`;
+    tab.style.padding = '8px';
+    
   });
 }
 
