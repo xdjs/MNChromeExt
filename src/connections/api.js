@@ -24,6 +24,17 @@ export async function fetchArtist(info) {
     const linksResponse = await fetch(linksUrl);
     artist.links = linksResponse.ok ? await linksResponse.json() : [];
 
+    try {
+      const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
+      const spotifyRes = await fetch(spotifyUrl)
+
+      if (spotifyRes.ok) {
+        artist.spotifyData = await spotifyRes.json();
+      } 
+    } catch {
+      artist.spotifyData = null;
+    }
+
     cacheArtist(info.id, artist, 'id');
 
     
@@ -73,6 +84,17 @@ export async function fetchArtistFromName(info) {
       }
     } catch {
       artist.bio = null;
+    }
+
+    try {
+      const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
+      const spotifyRes = await fetch(spotifyUrl)
+
+      if (spotifyRes.ok) {
+        artist.spotifyData = await spotifyRes.json();
+      } 
+    } catch {
+      artist.spotifyData = null;
     }
 
 
@@ -142,7 +164,7 @@ export async function fetchMultipleArtistsByNames(artistNames) {
   console.log('Batch artist API response:', data);
 
   const filtered = results.filter(a =>
-    a && a.id && a.matchScore != 0
+    a && a.id && a.matchScore == 0
   );
   
   const withLinks = await Promise.all(filtered.map(async (artist) => {
