@@ -3,11 +3,25 @@
   // src/frontend/popup/ui.js
   function renderArtist(a) {
     console.log(a);
+    const imageUrl = a.spotifyData?.data?.images?.[0]?.url;
     console.log(a.bio);
     const titleEl = document.getElementById("title");
     const bioEl = document.getElementById("bio");
     const linksTitleEl = document.getElementById("links-title");
     const linksListEl = document.getElementById("links-list");
+    if (imageUrl) {
+      console.log(imageUrl);
+      const cardEl = document.getElementById("card");
+      cardEl.style.backgroundImage = `
+        linear-gradient(to bottom, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.8) 70%, rgba(255,255,255,1) 100%), 
+        url(${imageUrl})
+      `;
+      cardEl.style.backgroundSize = "cover";
+      cardEl.style.backgroundPosition = "center";
+      cardEl.style.backgroundRepeat = "no-repeat";
+    } else {
+      console.log("no image URL detected");
+    }
     const musicNerdEl = document.getElementById("MN-link");
     musicNerdEl.textContent = document.createElement("a");
     if (a.id) {
@@ -308,6 +322,9 @@
     const data = r.ok ? await r.json() : { artists: [null] };
     const artist = Array.isArray(data.results) ? data.results[0] : null;
     console.log("Artist API response:", artist);
+    if (artist.matchScore != 0) {
+      return null;
+    }
     if (artist && !artist.error && artist.id) {
       const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
       const linksResponse = await fetch(linksUrl);
@@ -360,20 +377,26 @@
     const filtered = results.filter(
       (a) => a && a.id && a.matchScore != 0
     );
-    const withLinks = await Promise.all(results.map(async (artist) => {
+    const withLinks = await Promise.all(filtered.map(async (artist) => {
       if (!artist || !artist.id) return artist;
       const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
       const bioUrl = `https://api.musicnerd.xyz/api/artistBio/${encodeURIComponent(artist.id)}`;
-      const [linksRes, bioRes] = await Promise.all([
+      const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
+      const [linksRes, bioRes, spotifyRes] = await Promise.all([
         fetch(linksUrl),
         fetch(bioUrl, {
+          method: "GET",
+          headers: { Accept: "application/json" }
+        }),
+        fetch(spotifyUrl, {
           method: "GET",
           headers: { Accept: "application/json" }
         })
       ]);
       const links = linksRes.ok ? await linksRes.json() : [];
       const bio = bioRes.ok ? await bioRes.json() : null;
-      return { ...artist, links, bio };
+      const spotifyData = spotifyRes.ok ? await spotifyRes.json() : null;
+      return { ...artist, links, bio, spotifyData };
     }));
     return withLinks;
   }

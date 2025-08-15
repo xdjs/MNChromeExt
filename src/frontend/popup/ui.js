@@ -1,22 +1,32 @@
 export function renderArtist(a){
     
     console.log(a);
-    // if(!a){ 
-    //     document.body.innerHTML = `
-    //         <div style="padding: 20px; text-align: center;">
-    //             <h3>Artist Not Yet in Database</h3>
-    //             <p>This artist isn't in our MusicNerd Database yet.</p>
-    //             <p><a href="https://www.musicnerd.xyz" target="_blank">Visit MusicNerd.xyz</a> to suggest additions!</p>
-    //         </div>
-    //     `; 
-    //     return; 
-    // }
+
+    const imageUrl = a.spotifyData?.data?.images?.[0]?.url;
+
 
     console.log(a.bio);
     const titleEl = document.getElementById('title');
     const bioEl = document.getElementById('bio');
     const linksTitleEl = document.getElementById('links-title');
     const linksListEl  = document.getElementById('links-list');
+    if (imageUrl) {
+      console.log(imageUrl);
+      const cardEl = document.getElementById('card');
+
+      cardEl.style.backgroundImage =  `
+        linear-gradient(to bottom, rgba(255,255,255,0.4) 40%, rgba(255,255,255,0.8) 70%, rgba(255,255,255,1) 100%), 
+        url(${imageUrl})
+      `;
+  
+      cardEl.style.backgroundSize = 'cover';
+      cardEl.style.backgroundPosition = 'center';
+      cardEl.style.backgroundRepeat = 'no-repeat';
+    }
+    else {
+      console.log("no image URL detected");
+    }
+    
 
     const musicNerdEl = document.getElementById('MN-link');
 
