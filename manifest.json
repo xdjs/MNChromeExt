@@ -10,9 +10,9 @@
     "128": "assets/mn-logo-128.png"
   },
   "action": {
-    "default_popup": "popup.html",
     "default_title": "MusicNerd Extension"
   },
+  "side_panel": { "default_path": "popup.html" },
   "background": {
     "service_worker": "background.js"
   },
@@ -23,7 +23,7 @@
        "run_at": "document_idle"
      }
    ],
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "sidePanel"],
   "host_permissions": [
     "https://mn-chrome-ext.vercel.app/*",
     "https://www.googleapis.com/*",
