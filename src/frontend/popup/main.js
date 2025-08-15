@@ -31,7 +31,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           errorScreen("noData");
           break;
         }
-        case null || undefined: {
+        case undefined: {
+          console.log("[ERROR] no artist returned for mediaSession")
           errorScreen("noArtist");
           break;
         }
@@ -44,10 +45,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const artists = await fetchMultipleArtists(tab.id);
   console.log("rendering multiple artists")
+  console.log(artists);
   if (artists.length > 0) {
     renderArtists(artists);
   }
   else {
+    console.log("[ERROR] no artists detected, showing error")
     errorScreen("noArtist");
   }
 

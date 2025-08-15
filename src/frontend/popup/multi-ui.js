@@ -6,6 +6,7 @@ let artistList = [];
 let activeArtistIndex = 0;
 
 export function renderArtists(artists) {
+  
     console.log('renderArtists called with:', artists);
     artistList = artists;
 

@@ -2,12 +2,26 @@
 (() => {
   // src/frontend/popup/ui.js
   function renderArtist(a) {
-    console.log(a);
+    const imageUrl = a.spotifyData?.data?.images?.[0]?.url;
     console.log(a.bio);
     const titleEl = document.getElementById("title");
     const bioEl = document.getElementById("bio");
     const linksTitleEl = document.getElementById("links-title");
     const linksListEl = document.getElementById("links-list");
+    if (imageUrl) {
+      console.log(imageUrl);
+      const cardEl = document.getElementById("card");
+      cardEl.style.backgroundImage = `
+        radial-gradient(circle, transparent, rgba(255,255,255,1.0)),
+        url(${imageUrl})
+      `;
+      cardEl.style.backgroundSize = "cover";
+      cardEl.style.backgroundPosition = "center";
+      cardEl.style.backgroundRepeat = "no-repeat";
+      cardEl.style.minHeight = "580px";
+    } else {
+      console.log("no image URL detected");
+    }
     const musicNerdEl = document.getElementById("MN-link");
     musicNerdEl.textContent = document.createElement("a");
     if (a.id) {
@@ -27,6 +41,15 @@
     musicNerdEl.appendChild(MNurl);
     titleEl.textContent = a.name ?? "Sorry, we don't know this artist!";
     bioEl.textContent = typeof a.bio === "string" ? a.bio : a.bio?.bio ?? a.bio?.text ?? "No bio Available";
+    if (a.bio) {
+      titleEl.appendChild(bioEl);
+      titleEl.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
+      titleEl.style.borderRadius = "8px";
+      titleEl.style.padding = "16px";
+      titleEl.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+      titleEl.style.backdropFilter = "blur(10px)";
+      bioEl.style.textTransform = "none";
+    }
     if (!a.id) {
       bioEl.textContent = "";
     }
@@ -46,7 +69,14 @@
           const linkWrapper = document.createElement("a");
           linkWrapper.href = l.url ?? l.href ?? "#";
           linkWrapper.target = "_blank";
+          linkWrapper.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
+          linkWrapper.style.borderRadius = "8px";
+          linkWrapper.style.padding = "8px";
+          linkWrapper.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+          linkWrapper.style.backdropFilter = "blur(10px)";
+          linkWrapper.style.marginBottom = "8px";
           linkWrapper.className = "flex items-center gap-3 hover:bg-gray-50 p-2 rounded";
+          linksListEl.style.gap = "4px";
           const label = document.createElement("p");
           label.className = "font-semibold uppercase text-sm text-blue-600 hover:text-blue-800";
           label.textContent = l.label ?? l.title ?? "Link";
@@ -290,6 +320,15 @@
       const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
       const linksResponse = await fetch(linksUrl);
       artist.links = linksResponse.ok ? await linksResponse.json() : [];
+      try {
+        const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
+        const spotifyRes = await fetch(spotifyUrl);
+        if (spotifyRes.ok) {
+          artist.spotifyData = await spotifyRes.json();
+        }
+      } catch {
+        artist.spotifyData = null;
+      }
       cacheArtist(info.id, artist, "id");
     }
     return artist;
@@ -308,6 +347,9 @@
     const data = r.ok ? await r.json() : { artists: [null] };
     const artist = Array.isArray(data.results) ? data.results[0] : null;
     console.log("Artist API response:", artist);
+    if (artist.matchScore != 0) {
+      return null;
+    }
     if (artist && !artist.error && artist.id) {
       const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
       const linksResponse = await fetch(linksUrl);
@@ -324,6 +366,15 @@
         }
       } catch {
         artist.bio = null;
+      }
+      try {
+        const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
+        const spotifyRes = await fetch(spotifyUrl);
+        if (spotifyRes.ok) {
+          artist.spotifyData = await spotifyRes.json();
+        }
+      } catch {
+        artist.spotifyData = null;
       }
       cacheArtist(info.channel, artist);
     }
@@ -358,22 +409,28 @@
     const results = Array.isArray(data.results) ? data.results : [];
     console.log("Batch artist API response:", data);
     const filtered = results.filter(
-      (a) => a && a.id && a.matchScore != 0
+      (a) => a && a.id && a.matchScore == 0
     );
-    const withLinks = await Promise.all(results.map(async (artist) => {
+    const withLinks = await Promise.all(filtered.map(async (artist) => {
       if (!artist || !artist.id) return artist;
       const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
       const bioUrl = `https://api.musicnerd.xyz/api/artistBio/${encodeURIComponent(artist.id)}`;
-      const [linksRes, bioRes] = await Promise.all([
+      const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
+      const [linksRes, bioRes, spotifyRes] = await Promise.all([
         fetch(linksUrl),
         fetch(bioUrl, {
+          method: "GET",
+          headers: { Accept: "application/json" }
+        }),
+        fetch(spotifyUrl, {
           method: "GET",
           headers: { Accept: "application/json" }
         })
       ]);
       const links = linksRes.ok ? await linksRes.json() : [];
       const bio = bioRes.ok ? await bioRes.json() : null;
-      return { ...artist, links, bio };
+      const spotifyData = spotifyRes.ok ? await spotifyRes.json() : null;
+      return { ...artist, links, bio, spotifyData };
     }));
     return withLinks;
   }
@@ -580,6 +637,7 @@
             break;
           }
           case void 0: {
+            console.log("[ERROR] no artist returned for mediaSession");
             errorScreen("noArtist");
             break;
           }
@@ -589,9 +647,11 @@
     }
     const artists = await fetchMultipleArtists(tab.id);
     console.log("rendering multiple artists");
+    console.log(artists);
     if (artists.length > 0) {
       renderArtists(artists);
     } else {
+      console.log("[ERROR] no artists detected, showing error");
       errorScreen("noArtist");
     }
   });
