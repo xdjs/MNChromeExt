@@ -41,7 +41,7 @@ export function renderArtist(a){
         else {
             musicNerdEl.href =  `https://www.musicnerd.xyz`;
         }
-        musicNerdEl.className = 'flex items-center gap-3 hover:bg-gray-50 p-2 rounded';
+        musicNerdEl.className = 'flex items-center gap-3 p-2 rounded';
         musicNerdEl.target = '_blank';
     
         const MNurl = document.createElement('p');
@@ -55,6 +55,16 @@ export function renderArtist(a){
               
     
         musicNerdEl.appendChild(MNurl);
+
+        musicNerdEl.addEventListener('mouseenter', () => {
+          linkWrapper.style.transform = 'scale(1.1)';
+          linkWrapper.style.transition = 'transform 0.3s ease';
+        });
+
+        musicNerdEl.addEventListener('mouseleave', () => {
+          linkWrapper.style.transform = 'scale(1.0)';
+          linkWrapper.style.transition = 'transform 0.3s ease';
+        });
     
 
     
