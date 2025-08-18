@@ -50,15 +50,13 @@
     });
     titleEl.textContent = a.name ?? "Sorry, we don't know this artist!";
     bioEl.textContent = typeof a.bio === "string" ? a.bio : a.bio?.bio ?? a.bio?.text ?? "No bio Available";
-    if (a.bio) {
-      titleEl.appendChild(bioEl);
-      titleEl.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
-      titleEl.style.borderRadius = "8px";
-      titleEl.style.padding = "16px";
-      titleEl.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
-      titleEl.style.backdropFilter = "blur(5px)";
-      bioEl.style.textTransform = "none";
-    }
+    titleEl.appendChild(bioEl);
+    titleEl.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
+    titleEl.style.borderRadius = "8px";
+    titleEl.style.padding = "16px";
+    titleEl.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+    titleEl.style.backdropFilter = "blur(5px)";
+    bioEl.style.textTransform = "none";
     if (!a.id) {
       bioEl.textContent = "";
     }
@@ -397,6 +395,9 @@
     const filtered = results.filter(
       (a) => a && a.id && a.matchScore == 0
     );
+    if (filtered.length == 0) {
+      return null;
+    }
     const artistIds = filtered.map((a) => a.id);
     const linksRes = await fetch(`${API}/api/urlmap/links/${artistIds.join(",")}`);
     const allLinks = await linksRes.json();
@@ -548,6 +549,9 @@
       console.log(artistNames);
       if (artistNames.length > 0) {
         const foundArtists = await fetchMultipleArtistsByNames(artistNames);
+        if (!foundArtists) {
+          return null;
+        }
         const validArtists = foundArtists.filter((artist) => artist && !artist.error && artist.id).map((artist) => ({ ...artist, isPrimary: false }));
         artists.push(...validArtists);
       }
@@ -591,31 +595,32 @@
     }
     if (!tab.url.includes("youtube.com/watch") && !tab.url.includes("music.youtube.com")) {
       const artists2 = await fetchArtistsMediaSession();
-      console.log("found artists, rendering: " + artists2.length + " artists");
-      if (artists2.length > 0 && artists2 != "noMediaSession") {
-        renderArtists(artists2);
-      } else {
-        switch (artists2) {
-          case "noMediaSession": {
-            errorScreen("noData");
-            break;
-          }
-          case void 0: {
-            console.log("[ERROR] no artist returned for mediaSession");
-            errorScreen("noArtist");
-            break;
-          }
+      if (artists2) {
+        console.log("found artists, rendering: " + artists2.length + " artists");
+        if (artists2.length > 0 && artists2 != "noMediaSession") {
+          renderArtists(artists2);
+        } else if (artists2 == "noMediaSession") {
+          errorScreen("noData");
+        } else {
+          errorScreen("noArtist");
         }
+      } else {
+        console.log("[ERROR] no artist returned for mediaSession");
+        errorScreen("noArtist");
       }
       return;
     }
     const artists = await fetchMultipleArtists(tab.id);
     console.log("rendering multiple artists");
-    console.log(artists);
-    if (artists.length > 0) {
-      renderArtists(artists);
+    if (artists) {
+      console.log(artists);
+      if (artists.length > 0) {
+        renderArtists(artists);
+      } else {
+        console.log("[ERROR] no artists detected, showing error");
+        errorScreen("noArtist");
+      }
     } else {
-      console.log("[ERROR] no artists detected, showing error");
       errorScreen("noArtist");
     }
   });

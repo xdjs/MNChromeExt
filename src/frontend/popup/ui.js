@@ -72,7 +72,7 @@ export function renderArtist(a){
 
     titleEl.textContent = a.name ?? "Sorry, we don't know this artist!";
     bioEl.textContent = typeof a.bio === 'string' ? a.bio : (a.bio?.bio ?? a.bio?.text ?? "No bio Available");
-    if (a.bio) {
+
       titleEl.appendChild(bioEl);
       titleEl.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
       titleEl.style.borderRadius = '8px';
@@ -81,8 +81,6 @@ export function renderArtist(a){
       titleEl.style.backdropFilter = 'blur(5px)';
       bioEl.style.textTransform = 'none';
 
-
-    }
     
     if (!a.id) {
         bioEl.textContent = "";

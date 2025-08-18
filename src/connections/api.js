@@ -169,6 +169,10 @@ export async function fetchMultipleArtistsByNames(artistNames) {
     a && a.id && a.matchScore == 0
   );
 
+  if (filtered.length == 0) {
+    return null;
+  }
+
   const artistIds = filtered.map(a => a.id);
 
   const linksRes = await fetch(`${API}/api/urlmap/links/${artistIds.join(',')}`);

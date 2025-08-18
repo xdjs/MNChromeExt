@@ -77,6 +77,10 @@ export async function fetchMultipleArtists(tabId) {
     if (artistNames.length > 0) {
       const foundArtists = await fetchMultipleArtistsByNames(artistNames);
       
+      if (!foundArtists) {
+        return null;
+      }
+      
       const validArtists = foundArtists
         .filter(artist => artist && !artist.error && artist.id)
         .map(artist => ({ ...artist, isPrimary: false }));

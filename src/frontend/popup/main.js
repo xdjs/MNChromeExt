@@ -22,22 +22,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   if (!tab.url.includes('youtube.com/watch') && !tab.url.includes('music.youtube.com')) {
     const artists = await fetchArtistsMediaSession();
-    console.log ("found artists, rendering: " + artists.length + " artists");
-    if (artists.length > 0 && artists != "noMediaSession") {
-      renderArtists(artists);
+    if (artists) {
+      console.log ("found artists, rendering: " + artists.length + " artists");
+      if (artists.length > 0 && artists != "noMediaSession") {
+        renderArtists(artists);
+      }
+      else if (artists == "noMediaSession") {
+        errorScreen("noData");
+      }
+      else {
+        errorScreen("noArtist");
+      }
     }
     else {
-      switch (artists) {
-        case "noMediaSession": {
-          errorScreen("noData");
-          break;
-        }
-        case undefined: {
-          console.log("[ERROR] no artist returned for mediaSession")
-          errorScreen("noArtist");
-          break;
-        }
-      }
+      console.log("[ERROR] no artist returned for mediaSession")
+      errorScreen("noArtist");
     }// Show "not on YouTube" message
     return;
   }
@@ -46,14 +45,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const artists = await fetchMultipleArtists(tab.id);
   console.log("rendering multiple artists")
-  console.log(artists);
-  if (artists.length > 0) {
-    renderArtists(artists);
+  if (artists) {
+    console.log(artists);
+    if (artists.length > 0) {
+      renderArtists(artists);
+    }
+    else {
+      console.log("[ERROR] no artists detected, showing error")
+      errorScreen("noArtist");
+    }
   }
   else {
-    console.log("[ERROR] no artists detected, showing error")
     errorScreen("noArtist");
   }
+  
 
 });
 
