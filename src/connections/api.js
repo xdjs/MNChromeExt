@@ -70,6 +70,8 @@ export async function fetchArtistFromName(info) {
     // Fetch links for this artist using the correct endpoint  
     const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
     const linksResponse = await fetch(linksUrl);
+
+    
     artist.links = linksResponse.ok ? await linksResponse.json() : [];
 
     try {
@@ -166,16 +168,20 @@ export async function fetchMultipleArtistsByNames(artistNames) {
   const filtered = results.filter(a =>
     a && a.id && a.matchScore == 0
   );
+
+  const artistIds = filtered.map(a => a.id);
+
+  const linksRes = await fetch(`${API}/api/urlmap/links/${artistIds.join(',')}`);
+
+  const allLinks = await linksRes.json;
   
-  const withLinks = await Promise.all(filtered.map(async (artist) => {
+  const withData = await Promise.all(filtered.map(async (artist) => {
 
         if (!artist || !artist.id) return artist;
-        const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
         const bioUrl = `https://api.musicnerd.xyz/api/artistBio/${encodeURIComponent(artist.id)}`;
         const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
       
-        const [linksRes, bioRes, spotifyRes] = await Promise.all([
-          fetch(linksUrl),
+        const [bioRes, spotifyRes] = await Promise.all([
           fetch(bioUrl, {
             method: 'GET',
             headers: { Accept: 'application/json' },
@@ -187,13 +193,17 @@ export async function fetchMultipleArtistsByNames(artistNames) {
         ]);
         
       
-        const links = linksRes.ok ? await linksRes.json() : [];
         const bio = bioRes.ok ? await bioRes.json() : null;
         const spotifyData = spotifyRes.ok ? await spotifyRes.json() : null;
 
         
-        return { ...artist, links, bio, spotifyData};
+        return { ...artist, bio, spotifyData};
     }));
+
+    const withLinks = withData.map(artist => ({
+      ...artist,
+      links: allLinks[artist.id] || [],
+  }));
 
     return withLinks;
   
