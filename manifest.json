@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "MusicNerd Chrome Extension",
-  "version": "1.0.1",
+  "name": "Music Nerd Chrome Extension",
+  "version": "1.0.2",
   "description": "Detects currently playing music and displays artist information from the MusicNerd Database including bios and social media links.",
   "icons": {
     "16": "assets/mn-logo-16.png",
@@ -26,9 +26,10 @@
   "permissions": ["activeTab", "storage"],
   "host_permissions": [
     "https://mn-chrome-ext.vercel.app/*",
-    "https://www.googleapis.com/*"
+    "https://www.googleapis.com/*",
+    "https://api.musicnerd.xyz/*"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.vercel.app https://*.googleapis.com"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' https://*.vercel.app https://*.googleapis.com https://api.musicnerd.xyz"
   }
 } 

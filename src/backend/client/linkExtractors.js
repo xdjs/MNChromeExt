@@ -8,9 +8,7 @@ export function getVideoId(url) {
     for (const re of patterns) {
         const match = url.match(re);
         if (match) {
-            console.log(match[1]);
             return match[1];
-            
         }
     }
     return null;

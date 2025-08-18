@@ -1,22 +1,36 @@
 export function renderArtist(a){
-    
-    console.log(a);
-    // if(!a){ 
-    //     document.body.innerHTML = `
-    //         <div style="padding: 20px; text-align: center;">
-    //             <h3>Artist Not Yet in Database</h3>
-    //             <p>This artist isn't in our MusicNerd Database yet.</p>
-    //             <p><a href="https://www.musicnerd.xyz" target="_blank">Visit MusicNerd.xyz</a> to suggest additions!</p>
-    //         </div>
-    //     `; 
-    //     return; 
-    // }
+
+
+    const imageUrl = a.spotifyData?.data?.images?.[0]?.url;
+
 
     console.log(a.bio);
     const titleEl = document.getElementById('title');
     const bioEl = document.getElementById('bio');
     const linksTitleEl = document.getElementById('links-title');
     const linksListEl  = document.getElementById('links-list');
+
+
+    if (imageUrl) {
+      console.log(imageUrl);
+      const cardEl = document.getElementById('card');
+
+      cardEl.style.backgroundImage =  `
+        radial-gradient(circle, transparent, rgba(255,255,255,1.0)),
+        url(${imageUrl})
+      `;
+      cardEl.style.backgroundSize = 'cover';
+      cardEl.style.backgroundPosition = 'center';
+      cardEl.style.backgroundRepeat = 'no-repeat';
+      cardEl.style.minHeight = '580px';
+
+      
+      
+    }
+    else {
+      console.log("no image URL detected");
+    }
+    
 
     const musicNerdEl = document.getElementById('MN-link');
 
@@ -27,7 +41,7 @@ export function renderArtist(a){
         else {
             musicNerdEl.href =  `https://www.musicnerd.xyz`;
         }
-        musicNerdEl.className = 'flex items-center gap-3 hover:bg-gray-50 p-2 rounded';
+        musicNerdEl.className = 'flex items-center gap-3 p-2 rounded';
         musicNerdEl.target = '_blank';
     
         const MNurl = document.createElement('p');
@@ -41,15 +55,38 @@ export function renderArtist(a){
               
     
         musicNerdEl.appendChild(MNurl);
+
+        musicNerdEl.addEventListener('mouseenter', () => {
+          linkWrapper.style.transform = 'scale(1.1)';
+          linkWrapper.style.transition = 'transform 0.3s ease';
+        });
+
+        musicNerdEl.addEventListener('mouseleave', () => {
+          linkWrapper.style.transform = 'scale(1.0)';
+          linkWrapper.style.transition = 'transform 0.3s ease';
+        });
     
 
     
 
     titleEl.textContent = a.name ?? "Sorry, we don't know this artist!";
-    bioEl.textContent = a.bio ?? "No bio Available";
+    bioEl.textContent = typeof a.bio === 'string' ? a.bio : (a.bio?.bio ?? a.bio?.text ?? "No bio Available");
+    if (a.bio) {
+      titleEl.appendChild(bioEl);
+      titleEl.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+      titleEl.style.borderRadius = '8px';
+      titleEl.style.padding = '16px';
+      titleEl.style.boxShadow= '0 2px 8px rgba(0, 0, 0, 0.1)';
+      titleEl.style.backdropFilter = 'blur(5px)';
+      bioEl.style.textTransform = 'none';
+
+
+    }
+    
     if (!a.id) {
         bioEl.textContent = "";
     }
+
 
 
     
@@ -59,6 +96,8 @@ export function renderArtist(a){
       if (a.id) {
         linksTitleEl.textContent = `${a.name ?? 'Artist'}'s Links`;
         linksTitleEl.style.display = 'block';
+        
+        
       } else {
         linksTitleEl.style.display = 'none';
       }
@@ -74,15 +113,41 @@ export function renderArtist(a){
         a.links.forEach(l => {
           const li = document.createElement('li');
 
+
+
+
           // Create clickable link wrapper
           const linkWrapper = document.createElement('a');
           linkWrapper.href = l.url ?? l.href ?? '#';
           linkWrapper.target = '_blank'; // Open in new tab
+          linkWrapper.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
+          linkWrapper.style.borderRadius = '8px';
+          linkWrapper.style.padding = '8px';
+          linkWrapper.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+          linkWrapper.style.backdropFilter = 'blur(5px)';
+          linkWrapper.style.marginBottom = '8px';
           linkWrapper.className = 'flex items-center gap-3 hover:bg-gray-50 p-2 rounded';
+          linksListEl.style.gap = '4px'; // Custom spacing
+
+          linkWrapper.addEventListener('mouseenter', () => {
+            linkWrapper.style.transform = 'scale(1.1)';
+            linkWrapper.style.transition = 'transform 0.3s ease';
+          });
+
+          linkWrapper.addEventListener('mouseleave', () => {
+            linkWrapper.style.transform = 'scale(1.0)';
+            linkWrapper.style.transition = 'transform 0.3s ease';
+          });
+
+
+
           
           const label = document.createElement('p');
           label.className = 'font-semibold uppercase text-sm text-blue-600 hover:text-blue-800';
           label.textContent = l.label ?? l.title ?? 'Link';
+
+
+
 
           const url = document.createElement('p');
           url.className = 'text-sm text-gray-500 truncate';
@@ -121,11 +186,17 @@ export function renderArtist(a){
         li.textContent = '';
         linksListEl.appendChild(li);
       }
+
     }
+
+
 
     console.log(titleEl);
     console.log(bioEl);
   }
+
+
+
 export function errorScreen(error) {
   const titleEl = document.getElementById('title');
   const bioEl = document.getElementById('bio');
