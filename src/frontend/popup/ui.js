@@ -1,7 +1,8 @@
 export function renderArtist(a){
 
 
-    const imageUrl = a.spotifyData?.data?.images?.[0]?.url;
+    const spotifyData = a.spotifyData?.data || a.spotifyData;
+    const imageUrl = spotifyData?.images?.[0]?.url;
 
 
     console.log(a.bio);

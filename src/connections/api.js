@@ -173,39 +173,37 @@ export async function fetchMultipleArtistsByNames(artistNames) {
 
   const linksRes = await fetch(`${API}/api/urlmap/links/${artistIds.join(',')}`);
 
-  const allLinks = await linksRes.json;
+  const allLinks = await linksRes.json();
+
+  const spotifyIds = filtered.map(a => a.spotify);
+
+  const spotifyRes = await fetch(`https://api.musicnerd.xyz/api/getSpotifyData?spotifyIds=${spotifyIds.join(',')}`);
   
-  const withData = await Promise.all(filtered.map(async (artist) => {
+  const spotifyInfo= await spotifyRes.json();
+
+  const withBio = await Promise.all(filtered.map(async (artist) => {
 
         if (!artist || !artist.id) return artist;
         const bioUrl = `https://api.musicnerd.xyz/api/artistBio/${encodeURIComponent(artist.id)}`;
-        const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
       
-        const [bioRes, spotifyRes] = await Promise.all([
+        const bioRes = await 
           fetch(bioUrl, {
             method: 'GET',
             headers: { Accept: 'application/json' },
-          }),
-          fetch(spotifyUrl, {
-            method: 'GET',
-            headers: { Accept: 'application/json' },
-          })
-        ]);
-        
-      
+          });
+              
         const bio = bioRes.ok ? await bioRes.json() : null;
-        const spotifyData = spotifyRes.ok ? await spotifyRes.json() : null;
 
-        
-        return { ...artist, bio, spotifyData};
+        return { ...artist, bio};
     }));
 
-    const withLinks = withData.map(artist => ({
-      ...artist,
+    const withData = withBio.map(artist => ({
+      ...artist, 
       links: allLinks[artist.id] || [],
+      spotifyData: spotifyInfo.data?.find(s => s.id === artist.spotify) || null
   }));
 
-    return withLinks;
+    return withData;
   
 }
 

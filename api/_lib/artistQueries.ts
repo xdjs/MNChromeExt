@@ -41,13 +41,13 @@ export async function getMainUrls(artist: any) {
         let artistUrl = platform.appStringFormat;
         const value = artist[platform.siteName];
         
-        if (!value || artistUrl === "https://www.youtube.com/channel/%@") {
+        if (!value || artistUrl === "ens_format" || artistUrl === "https://www.youtube.com/channel/%@") {
             continue;
         }
         
         try {
             artistUrl = platform.appStringFormat.replace("%@", value);
-            console.log(artistUrl);
+
             artistlinks.push({
                 label: platform.siteName,
                 url: artistUrl,
