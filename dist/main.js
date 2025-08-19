@@ -9,28 +9,6 @@
     const bioEl = document.getElementById("bio");
     const linksTitleEl = document.getElementById("links-title");
     const linksListEl = document.getElementById("links-list");
-    if (imageUrl) {
-      console.log(imageUrl);
-      const cardEl = document.getElementById("card");
-      cardEl.style.transition = "none";
-      cardEl.style.transform = "scale(1.05)";
-      cardEl.style.opacity = "0.8";
-      cardEl.style.backgroundImage = `
-        radial-gradient(circle, transparent, rgba(255,255,255,1.0)),
-        url(${imageUrl})
-      `;
-      cardEl.style.backgroundSize = "cover";
-      cardEl.style.backgroundPosition = "center";
-      cardEl.style.backgroundRepeat = "no-repeat";
-      cardEl.style.minHeight = "580px";
-      setTimeout(() => {
-        cardEl.style.transition = "all 0.4s ease-out";
-        cardEl.style.transform = "scale(1)";
-        cardEl.style.opacity = "1";
-      }, 50);
-    } else {
-      console.log("no image URL detected");
-    }
     const musicNerdEl = document.getElementById("MN-link");
     musicNerdEl.textContent = document.createElement("a");
     if (a.id) {
@@ -47,24 +25,30 @@
     } else {
       MNurl.textContent = "Add them on MusicNerd.xyz";
     }
+    const logoImg = document.createElement("img");
+    logoImg.src = "assets/mn-logo-48.png";
+    logoImg.alt = "MN";
+    logoImg.className = "w-4 h-4 mr-0";
+    logoImg.style.display = "inline-block";
+    logoImg.style.verticalAlign = "middle";
+    musicNerdEl.appendChild(logoImg);
     musicNerdEl.appendChild(MNurl);
-    musicNerdEl.addEventListener("mouseenter", () => {
-      linkWrapper.style.transform = "scale(1.1)";
-      linkWrapper.style.transition = "transform 0.3s ease";
-    });
-    musicNerdEl.addEventListener("mouseleave", () => {
-      linkWrapper.style.transform = "scale(1.0)";
-      linkWrapper.style.transition = "transform 0.3s ease";
-    });
+    musicNerdEl.style.textTransform = "none";
+    musicNerdEl.style.backgroundColor = "rgba(255, 255, 255, 0.1)";
+    musicNerdEl.style.borderRadius = "8px";
+    musicNerdEl.style.padding = "8px";
+    musicNerdEl.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
     titleEl.textContent = a.name ?? "Sorry, we don't know this artist!";
     bioEl.textContent = typeof a.bio === "string" ? a.bio : a.bio?.bio ?? a.bio?.text ?? "No bio Available";
     titleEl.appendChild(bioEl);
+    titleEl.appendChild(musicNerdEl);
     titleEl.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
     titleEl.style.borderRadius = "8px";
     titleEl.style.padding = "16px";
     titleEl.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
     titleEl.style.backdropFilter = "blur(5px)";
     bioEl.style.textTransform = "none";
+    bio.style.marginBottom = "4px";
     if (!a.id) {
       bioEl.textContent = "";
     }
@@ -81,24 +65,25 @@
       if (Array.isArray(a.links) && a.links.length > 0) {
         a.links.forEach((l) => {
           const li = document.createElement("li");
-          const linkWrapper2 = document.createElement("a");
-          linkWrapper2.href = l.url ?? l.href ?? "#";
-          linkWrapper2.target = "_blank";
-          linkWrapper2.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
-          linkWrapper2.style.borderRadius = "8px";
-          linkWrapper2.style.padding = "8px";
-          linkWrapper2.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
-          linkWrapper2.style.backdropFilter = "blur(5px)";
-          linkWrapper2.style.marginBottom = "8px";
-          linkWrapper2.className = "flex items-center gap-3 hover:bg-gray-50 p-2 rounded";
+          li.style.backdropFilter = "blur(5px)";
+          const linkWrapper = document.createElement("a");
+          li.appendChild(linkWrapper);
+          linkWrapper.href = l.url ?? l.href ?? "#";
+          linkWrapper.target = "_blank";
+          linkWrapper.style.backgroundColor = "rgba(255, 255, 255, 0.5)";
+          linkWrapper.style.borderRadius = "8px";
+          linkWrapper.style.padding = "8px";
+          linkWrapper.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+          linkWrapper.style.marginBottom = "8px";
+          linkWrapper.className = "flex items-center gap-3 hover:bg-gray-50 p-2 rounded";
           linksListEl.style.gap = "4px";
-          linkWrapper2.addEventListener("mouseenter", () => {
-            linkWrapper2.style.transform = "scale(1.1)";
-            linkWrapper2.style.transition = "transform 0.3s ease";
+          linkWrapper.addEventListener("mouseenter", () => {
+            linkWrapper.style.transform = "scale(1.1)";
+            linkWrapper.style.transition = "transform 0.3s ease";
           });
-          linkWrapper2.addEventListener("mouseleave", () => {
-            linkWrapper2.style.transform = "scale(1.0)";
-            linkWrapper2.style.transition = "transform 0.3s ease";
+          linkWrapper.addEventListener("mouseleave", () => {
+            linkWrapper.style.transform = "scale(1.0)";
+            linkWrapper.style.transition = "transform 0.3s ease";
           });
           const label = document.createElement("p");
           label.className = "font-semibold uppercase text-sm text-blue-600 hover:text-blue-800";
@@ -118,9 +103,9 @@
           textContainer.className = "flex-1 min-w-0";
           textContainer.appendChild(label);
           textContainer.appendChild(url);
-          linkWrapper2.appendChild(img);
-          linkWrapper2.appendChild(textContainer);
-          li.appendChild(linkWrapper2);
+          linkWrapper.appendChild(img);
+          linkWrapper.appendChild(textContainer);
+          li.appendChild(linkWrapper);
           linksListEl.appendChild(li);
         });
       } else if (a.id) {
@@ -134,6 +119,50 @@
         li.textContent = "";
         linksListEl.appendChild(li);
       }
+    }
+    if (imageUrl) {
+      console.log(imageUrl);
+      const cardEl = document.getElementById("card");
+      titleEl.style.transition = "none";
+      cardEl.style.transition = "none";
+      titleEl.style.opacity = "0.5";
+      linksListEl.style.opacity = "0.5";
+      linksListEl.style.transition = "none";
+      cardEl.style.borderRadius = "12px";
+      cardEl.style.overflow = "hidden";
+      cardEl.style.backgroundImage = `
+        radial-gradient(ellipse 100% 100% at center, 
+        transparent 30%, 
+        rgba(255,255,255,0.8) 70%,
+        rgba(255,255,255,1) 90%
+      ),
+        url(${imageUrl})
+      `;
+      cardEl.style.transform = "scale(.97)";
+      cardEl.style.backgroundSize = "cover";
+      cardEl.style.backgroundPosition = "center";
+      cardEl.style.backgroundRepeat = "no-repeat";
+      cardEl.style.minHeight = "580px";
+      cardEl.style.transform = "translateX(-20px)";
+      titleEl.style.transform = "translateX(-40px)";
+      linksListEl.style.transform = "translateX(-40px)";
+      setTimeout(() => {
+        cardEl.style.transition = "all 0.4s ease-out";
+        cardEl.style.transform = "scale(1)";
+        cardEl.style.opacity = "1";
+        cardEl.style.filter = "grayscale(0%)";
+        cardEl.style.transform = "translateX(0px)";
+      }, 50);
+      setTimeout(() => {
+        titleEl.style.transition = "all 0.3s ease-out";
+        linksListEl.style.transition = "all 0.4s ease-out";
+        titleEl.style.transform = "translateX(0px)";
+        linksListEl.style.transform = "translateX(0px)";
+        titleEl.style.opacity = "1";
+        linksListEl.style.opacity = "1";
+      }, 100);
+    } else {
+      console.log("no image URL detected");
     }
     console.log(titleEl);
     console.log(bioEl);
@@ -162,8 +191,8 @@
         break;
       }
       case "notInjected": {
-        titleEl.textContent = "Our system isn't hooked up yet.";
-        bioEl.textContent = "If you've just installed or reloaded the application, \n please restart your browser or reload the page.";
+        titleEl.textContent = "Getting ready...";
+        bioEl.textContent = "Please refresh this page or restart your browser to get started.";
         break;
       }
       case "default": {
@@ -419,8 +448,8 @@
         method: "GET",
         headers: { Accept: "application/json" }
       });
-      const bio = bioRes.ok ? await bioRes.json() : null;
-      return { ...artist, bio };
+      const bio2 = bioRes.ok ? await bioRes.json() : null;
+      return { ...artist, bio: bio2 };
     }));
     const withData = withBio.map((artist) => ({
       ...artist,
