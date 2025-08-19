@@ -12,6 +12,9 @@
     if (imageUrl) {
       console.log(imageUrl);
       const cardEl = document.getElementById("card");
+      cardEl.style.transition = "none";
+      cardEl.style.transform = "scale(1.05)";
+      cardEl.style.opacity = "0.8";
       cardEl.style.backgroundImage = `
         radial-gradient(circle, transparent, rgba(255,255,255,1.0)),
         url(${imageUrl})
@@ -20,6 +23,11 @@
       cardEl.style.backgroundPosition = "center";
       cardEl.style.backgroundRepeat = "no-repeat";
       cardEl.style.minHeight = "580px";
+      setTimeout(() => {
+        cardEl.style.transition = "all 0.4s ease-out";
+        cardEl.style.transform = "scale(1)";
+        cardEl.style.opacity = "1";
+      }, 50);
     } else {
       console.log("no image URL detected");
     }
