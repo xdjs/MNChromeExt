@@ -1,5 +1,6 @@
 const API = 'https://mn-chrome-ext.vercel.app';
 import { cacheArtist, getCachedArtist } from '../backend/client/cache.js';
+import { artists } from '../backend/server/db/schema.js';
 
 
 
@@ -66,10 +67,12 @@ export async function fetchArtistFromName(info) {
     return null;
   }
   
-  if (artist && !artist.error && artist.id) {
+  if (artist && artist.id) {
     // Fetch links for this artist using the correct endpoint  
+    console.log("fetching links...")
     const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
     const linksResponse = await fetch(linksUrl);
+    console.log("Links: "+ linksResponse);
 
     
     artist.links = linksResponse.ok ? await linksResponse.json() : [];
@@ -175,7 +178,16 @@ export async function fetchMultipleArtistsByNames(artistNames) {
 
   const artistIds = filtered.map(a => a.id);
 
-  const linksRes = await fetch(`${API}/api/urlmap/links/${artistIds.join(',')}`);
+  let joinedIds = artistIds.join(',');
+
+  if (artistIds.length === 1) {
+    joinedIds = artistIds.join();
+  }
+
+  console.log("artists: " + artistIds.length);
+
+  const linksRes = await fetch(`${API}/api/urlmap/links/${joinedIds}`);
+  
 
   const allLinks = await linksRes.json();
 
@@ -200,14 +212,23 @@ export async function fetchMultipleArtistsByNames(artistNames) {
 
         return { ...artist, bio};
     }));
+    if (artistIds.length == 1) {
+      const withData = withBio.map(artist => ({
+        ...artist, 
+        links: allLinks,
+        spotifyData: spotifyInfo.data?.find(s => s.id === artist.spotify) || null
+    }));
 
-    const withData = withBio.map(artist => ({
-      ...artist, 
-      links: allLinks[artist.id] || [],
-      spotifyData: spotifyInfo.data?.find(s => s.id === artist.spotify) || null
-  }));
+      return withData;
+    }
+      const withData = withBio.map(artist => ({
+        ...artist, 
+        links: allLinks[artist.id] || [],
+        spotifyData: spotifyInfo.data?.find(s => s.id === artist.spotify) || null
+      }));
 
-    return withData;
+      return withData;
+    
   
 }
 

@@ -154,288 +154,6 @@
     console.log(`caching data: ${key}`);
   }
 
-  // src/connections/api.js
-  var API = "https://mn-chrome-ext.vercel.app";
-  async function fetchArtist(info) {
-    console.log("fetchArtist called with:", info);
-    const cached = await getCachedArtist(info.id, "id");
-    if (cached) {
-      console.log("[DEBUG: returning cached " + JSON.stringify(cached) + "]");
-      return cached;
-    }
-    const url = `${API}/api/artist/by-id/${encodeURIComponent(info.id)}`;
-    console.log("Fetching artist from:", url);
-    const r = await fetch(url);
-    const artist = r.ok ? await r.json() : null;
-    console.log("Artist API response:", artist);
-    if (artist && artist.id) {
-      const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
-      const linksResponse = await fetch(linksUrl);
-      artist.links = linksResponse.ok ? await linksResponse.json() : [];
-      try {
-        const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
-        const spotifyRes = await fetch(spotifyUrl);
-        if (spotifyRes.ok) {
-          artist.spotifyData = await spotifyRes.json();
-        }
-      } catch {
-        artist.spotifyData = null;
-      }
-      cacheArtist(info.id, artist, "id");
-    }
-    return artist;
-  }
-  async function fetchArtistFromName(info) {
-    const cached = await getCachedArtist(info.channel);
-    if (cached) return cached;
-    console.log("fetchArtistFromName called with:", info);
-    const url = `https://api.musicnerd.xyz/api/searchArtists/batch`;
-    console.log("Fetching artist from (batch-single):", info.channel);
-    const r = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({ query: { artists: [info.channel] } })
-    });
-    const data = r.ok ? await r.json() : { artists: [null] };
-    const artist = Array.isArray(data.results) ? data.results[0] : null;
-    console.log("Artist API response:", artist);
-    if (artist.matchScore != 0) {
-      return null;
-    }
-    if (artist && !artist.error && artist.id) {
-      const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
-      const linksResponse = await fetch(linksUrl);
-      artist.links = linksResponse.ok ? await linksResponse.json() : [];
-      try {
-        const bioRes = await fetch(`https://api.musicnerd.xyz/api/artistBio/${encodeURIComponent(artist.id)}`, {
-          headers: { Accept: "application/json" }
-        });
-        if (bioRes.ok) {
-          const bioJson = await bioRes.json();
-          artist.bio = typeof bioJson === "string" ? bioJson : bioJson?.bio ?? bioJson?.text ?? null;
-        } else {
-          artist.bio = null;
-        }
-      } catch {
-        artist.bio = null;
-      }
-      try {
-        const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
-        const spotifyRes = await fetch(spotifyUrl);
-        if (spotifyRes.ok) {
-          artist.spotifyData = await spotifyRes.json();
-        }
-      } catch {
-        artist.spotifyData = null;
-      }
-      cacheArtist(info.channel, artist);
-    }
-    return artist;
-  }
-  async function extractMultipleArtistsFromTitle(titleOrData) {
-    const url = `${API}/api/openai/extract-multiple-artists`;
-    const requestBody = typeof titleOrData === "string" ? { title: titleOrData } : { data: titleOrData };
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody)
-    });
-    if (!response.ok) return [];
-    const data = await response.json();
-    return data.artists || [];
-  }
-  async function fetchMultipleArtistsByNames(artistNames) {
-    if (!artistNames || artistNames.length === 0) return [];
-    console.log("fetchMultipleArtistsByNames called with:", artistNames);
-    const url = `https://api.musicnerd.xyz/api/searchArtists/batch`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({ query: { artists: artistNames } })
-    });
-    if (!response.ok) {
-      console.error("Batch artist fetch failed:", response.status, response.statusText);
-      return [];
-    }
-    const data = await response.json();
-    const results = Array.isArray(data.results) ? data.results : [];
-    console.log("Batch artist API response:", data);
-    const filtered = results.filter(
-      (a) => a && a.id && a.matchScore == 0
-    );
-    if (filtered.length == 0) {
-      return null;
-    }
-    const artistIds = filtered.map((a) => a.id);
-    const linksRes = await fetch(`${API}/api/urlmap/links/${artistIds.join(",")}`);
-    const allLinks = await linksRes.json();
-    const spotifyIds = filtered.map((a) => a.spotify);
-    const spotifyRes = await fetch(`https://api.musicnerd.xyz/api/getSpotifyData?spotifyIds=${spotifyIds.join(",")}`);
-    const spotifyInfo = await spotifyRes.json();
-    const withBio = await Promise.all(filtered.map(async (artist) => {
-      if (!artist || !artist.id) return artist;
-      const bioUrl = `https://api.musicnerd.xyz/api/artistBio/${encodeURIComponent(artist.id)}`;
-      const bioRes = await fetch(bioUrl, {
-        method: "GET",
-        headers: { Accept: "application/json" }
-      });
-      const bio = bioRes.ok ? await bioRes.json() : null;
-      return { ...artist, bio };
-    }));
-    const withData = withBio.map((artist) => ({
-      ...artist,
-      links: allLinks[artist.id] || [],
-      spotifyData: spotifyInfo.data?.find((s) => s.id === artist.spotify) || null
-    }));
-    return withData;
-  }
-
-  // src/backend/client/collabs.js
-  function hasCollaborationKeywords(title) {
-    const patterns = [
-      /\bft\.?\s/i,
-      // "ft. " or "ft "
-      /\bfeat\.?\s/i,
-      // "feat. " or "feat "  
-      /\bfeaturing\b/i,
-      // "featuring"
-      /\bwith\b/i,
-      // "with"
-      /\sx\s/i,
-      // " x " (Artist x Artist)
-      /\s&\s/,
-      // " & "
-      /\s\+\s/,
-      // " + "
-      /\bvs\.?\b/i,
-      // "vs" or "vs."
-      /\b(collab|collaboration)\b/i,
-      // "collab", "collaboration"
-      /\bremix by\b/i,
-      // "remix by"
-      /\bprod\.? by\b/i
-      // "prod by", "produced by"
-    ];
-    return patterns.some((pattern) => pattern.test(title));
-  }
-
-  // src/connections/preLoad.js
-  async function preLoadMediaSession() {
-    console.log("preloading...");
-    try {
-      const mediaData = detectMediaSession();
-      if (!mediaData || !mediaData.title) {
-        console.log("No media session data to preload");
-        return;
-      }
-      const cached = await getCachedMediaSessionResult(mediaData);
-      if (cached) {
-        console.log("Preload: cached result already exists: " + cached);
-        return;
-      }
-      let artists2 = [];
-      if (mediaData.title) {
-        const artist = await fetchArtistFromName(mediaData);
-        if (artist && !artist.error && artist.id) {
-          artists2.push({ ...artist, isPrimary: true });
-          if (hasCollaborationKeywords(mediaData.title)) {
-            const allArtistNames = await extractMultipleArtistsFromTitle(mediaData);
-            const newNames = allArtistNames.filter(
-              (name) => name.toLowerCase() !== artist.name.toLowerCase()
-            );
-            if (newNames.length > 0) {
-              const newArtists = await fetchMultipleArtistsByNames(newNames);
-              const validArtists = newArtists.filter((artist2) => artist2 && !artist2.error && artist2.id).map((artist2) => ({ ...artist2, isPrimary: false }));
-              artists2.push(...validArtists);
-            }
-          }
-          if (artists2.length > 0) {
-            await cacheMediaSessionResult(mediaData, artists2);
-            console.log("Successfully preloaded and cached artist data via name lookup");
-            return artists2;
-          }
-        }
-      }
-      if (mediaData.title && artists2.length === 0) {
-        console.log("Preload: falling back to AI extraction");
-        const artistNames = await extractMultipleArtistsFromTitle(mediaData);
-        console.log("AI extracted names:", artistNames);
-        if (artistNames.length > 0) {
-          const foundArtists = await fetchMultipleArtistsByNames(artistNames);
-          const validArtists = foundArtists.filter((artist) => artist && !artist.error && artist.id).map((artist) => ({ ...artist, isPrimary: false }));
-          artists2.push(...validArtists);
-        }
-        await cacheMediaSessionResult(mediaData, artists2);
-      }
-      return artists2;
-    } catch (error) {
-      console.error("Preload error:", error);
-      return [];
-    }
-  }
-  async function preLoadYT() {
-    const videoId = getVideoId(window.location.href);
-    if (!videoId) return;
-    const cached = await getCachedVideoResult(videoId);
-    if (cached) return;
-    const info = await fetchYTInfo(videoId);
-    if (!info) return;
-    let artists2 = [];
-    const artist = await fetchArtist({
-      id: info.id,
-      title: info.title,
-      channel: info.channel
-    });
-    if (artist && !artist.error) {
-      artists2.push({ ...artist, isPrimary: true });
-      if (hasCollaborationKeywords(info.title)) {
-        console.log("[preload] using AI for collaborators");
-        const allArtistNames = await extractMultipleArtistsFromTitle(info);
-        const newNames = allArtistNames.filter(
-          (name) => name.toLowerCase() !== artist.name.toLowerCase()
-        );
-        if (newNames.length > 0) {
-          const newArtists = await fetchMultipleArtistsByNames(newNames);
-          const validArtists = newArtists.filter((artist2) => artist2 && !artist2.error && artist2.id).map((artist2) => ({ ...artist2, isPrimary: false }));
-          artists2.push(...validArtists);
-        }
-      }
-    }
-    if (artists2.length === 0 && info.title) {
-      console.log("[Preload] falling back to AI");
-      const artistNames = await extractMultipleArtistsFromTitle(info);
-      if (artistNames.length > 0) {
-        const foundArtists = await fetchMultipleArtistsByNames(artistNames);
-        const validArtists = foundArtists.filter((artist2) => artist2 && !artist2.error && artist2.id).map((artist2) => ({ ...artist2, isPrimary: false }));
-        artists2.push(...validArtists);
-      }
-    }
-    if (artists2.length > 0) {
-      console.log("Successfully preloaded YouTube data");
-    }
-    await cacheVideoResult(videoId, artists2);
-    return artists2;
-  }
-  async function preLoad() {
-    try {
-      const videoId = getVideoId(window.location.href);
-      if (videoId) {
-        console.log("preloading youtube");
-        return await preLoadYT(videoId);
-      }
-      const mediaData = detectMediaSession();
-      if (mediaData && mediaData.title) {
-        console.log("preloading media session");
-        return await preLoadMediaSession(mediaData);
-      }
-      console.log("No preloadable content found");
-      return [];
-    } catch (error) {
-      console.error("Preload error:", error);
-      return [];
-    }
-  }
-
   // node_modules/drizzle-orm/entity.js
   var entityKind = Symbol.for("drizzle:entityKind");
   var hasOwnEntityKind = Symbol.for("drizzle:hasOwnEntityKind");
@@ -1799,6 +1517,303 @@
       };
     }
   );
+
+  // src/connections/api.js
+  var API = "https://mn-chrome-ext.vercel.app";
+  async function fetchArtist(info) {
+    console.log("fetchArtist called with:", info);
+    const cached = await getCachedArtist(info.id, "id");
+    if (cached) {
+      console.log("[DEBUG: returning cached " + JSON.stringify(cached) + "]");
+      return cached;
+    }
+    const url = `${API}/api/artist/by-id/${encodeURIComponent(info.id)}`;
+    console.log("Fetching artist from:", url);
+    const r = await fetch(url);
+    const artist = r.ok ? await r.json() : null;
+    console.log("Artist API response:", artist);
+    if (artist && artist.id) {
+      const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
+      const linksResponse = await fetch(linksUrl);
+      artist.links = linksResponse.ok ? await linksResponse.json() : [];
+      try {
+        const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
+        const spotifyRes = await fetch(spotifyUrl);
+        if (spotifyRes.ok) {
+          artist.spotifyData = await spotifyRes.json();
+        }
+      } catch {
+        artist.spotifyData = null;
+      }
+      cacheArtist(info.id, artist, "id");
+    }
+    return artist;
+  }
+  async function fetchArtistFromName(info) {
+    const cached = await getCachedArtist(info.channel);
+    if (cached) return cached;
+    console.log("fetchArtistFromName called with:", info);
+    const url = `https://api.musicnerd.xyz/api/searchArtists/batch`;
+    console.log("Fetching artist from (batch-single):", info.channel);
+    const r = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ query: { artists: [info.channel] } })
+    });
+    const data = r.ok ? await r.json() : { artists: [null] };
+    const artist = Array.isArray(data.results) ? data.results[0] : null;
+    console.log("Artist API response:", artist);
+    if (artist.matchScore != 0) {
+      return null;
+    }
+    if (artist && artist.id) {
+      console.log("fetching links...");
+      const linksUrl = `${API}/api/urlmap/links/${encodeURIComponent(artist.id)}`;
+      const linksResponse = await fetch(linksUrl);
+      console.log("Links: " + linksResponse);
+      artist.links = linksResponse.ok ? await linksResponse.json() : [];
+      try {
+        const bioRes = await fetch(`https://api.musicnerd.xyz/api/artistBio/${encodeURIComponent(artist.id)}`, {
+          headers: { Accept: "application/json" }
+        });
+        if (bioRes.ok) {
+          const bioJson = await bioRes.json();
+          artist.bio = typeof bioJson === "string" ? bioJson : bioJson?.bio ?? bioJson?.text ?? null;
+        } else {
+          artist.bio = null;
+        }
+      } catch {
+        artist.bio = null;
+      }
+      try {
+        const spotifyUrl = `https://api.musicnerd.xyz/api/getSpotifyData?spotifyId=${artist.spotify}`;
+        const spotifyRes = await fetch(spotifyUrl);
+        if (spotifyRes.ok) {
+          artist.spotifyData = await spotifyRes.json();
+        }
+      } catch {
+        artist.spotifyData = null;
+      }
+      cacheArtist(info.channel, artist);
+    }
+    return artist;
+  }
+  async function extractMultipleArtistsFromTitle(titleOrData) {
+    const url = `${API}/api/openai/extract-multiple-artists`;
+    const requestBody = typeof titleOrData === "string" ? { title: titleOrData } : { data: titleOrData };
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestBody)
+    });
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.artists || [];
+  }
+  async function fetchMultipleArtistsByNames(artistNames) {
+    if (!artistNames || artistNames.length === 0) return [];
+    console.log("fetchMultipleArtistsByNames called with:", artistNames);
+    const url = `https://api.musicnerd.xyz/api/searchArtists/batch`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({ query: { artists: artistNames } })
+    });
+    if (!response.ok) {
+      console.error("Batch artist fetch failed:", response.status, response.statusText);
+      return [];
+    }
+    const data = await response.json();
+    const results = Array.isArray(data.results) ? data.results : [];
+    console.log("Batch artist API response:", data);
+    const filtered = results.filter(
+      (a) => a && a.id && a.matchScore == 0
+    );
+    if (filtered.length == 0) {
+      return null;
+    }
+    const artistIds = filtered.map((a) => a.id);
+    let joinedIds = artistIds.join(",");
+    if (artistIds.length === 1) {
+      joinedIds = artistIds.join();
+    }
+    console.log("artists: " + artistIds.length);
+    const linksRes = await fetch(`${API}/api/urlmap/links/${joinedIds}`);
+    const allLinks = await linksRes.json();
+    const spotifyIds = filtered.map((a) => a.spotify);
+    const spotifyRes = await fetch(`https://api.musicnerd.xyz/api/getSpotifyData?spotifyIds=${spotifyIds.join(",")}`);
+    const spotifyInfo = await spotifyRes.json();
+    const withBio = await Promise.all(filtered.map(async (artist) => {
+      if (!artist || !artist.id) return artist;
+      const bioUrl = `https://api.musicnerd.xyz/api/artistBio/${encodeURIComponent(artist.id)}`;
+      const bioRes = await fetch(bioUrl, {
+        method: "GET",
+        headers: { Accept: "application/json" }
+      });
+      const bio = bioRes.ok ? await bioRes.json() : null;
+      return { ...artist, bio };
+    }));
+    if (artistIds.length == 1) {
+      const withData2 = withBio.map((artist) => ({
+        ...artist,
+        links: allLinks,
+        spotifyData: spotifyInfo.data?.find((s) => s.id === artist.spotify) || null
+      }));
+      return withData2;
+    }
+    const withData = withBio.map((artist) => ({
+      ...artist,
+      links: allLinks[artist.id] || [],
+      spotifyData: spotifyInfo.data?.find((s) => s.id === artist.spotify) || null
+    }));
+    return withData;
+  }
+
+  // src/backend/client/collabs.js
+  function hasCollaborationKeywords(title) {
+    const patterns = [
+      /\bft\.?\s/i,
+      // "ft. " or "ft "
+      /\bfeat\.?\s/i,
+      // "feat. " or "feat "  
+      /\bfeaturing\b/i,
+      // "featuring"
+      /\bwith\b/i,
+      // "with"
+      /\sx\s/i,
+      // " x " (Artist x Artist)
+      /\s&\s/,
+      // " & "
+      /\s\+\s/,
+      // " + "
+      /\bvs\.?\b/i,
+      // "vs" or "vs."
+      /\b(collab|collaboration)\b/i,
+      // "collab", "collaboration"
+      /\bremix by\b/i,
+      // "remix by"
+      /\bprod\.? by\b/i
+      // "prod by", "produced by"
+    ];
+    return patterns.some((pattern) => pattern.test(title));
+  }
+
+  // src/connections/preLoad.js
+  async function preLoadMediaSession() {
+    console.log("preloading...");
+    try {
+      const mediaData = detectMediaSession();
+      if (!mediaData || !mediaData.title) {
+        console.log("No media session data to preload");
+        return;
+      }
+      const cached = await getCachedMediaSessionResult(mediaData);
+      if (cached) {
+        console.log("Preload: cached result already exists: " + cached);
+        return;
+      }
+      let artists2 = [];
+      if (mediaData.title) {
+        const artist = await fetchArtistFromName(mediaData);
+        if (artist && !artist.error && artist.id) {
+          artists2.push({ ...artist, isPrimary: true });
+          if (hasCollaborationKeywords(mediaData.title)) {
+            const allArtistNames = await extractMultipleArtistsFromTitle(mediaData);
+            const newNames = allArtistNames.filter(
+              (name) => name.toLowerCase() !== artist.name.toLowerCase()
+            );
+            if (newNames.length > 0) {
+              const newArtists = await fetchMultipleArtistsByNames(newNames);
+              const validArtists = newArtists.filter((artist2) => artist2 && !artist2.error && artist2.id).map((artist2) => ({ ...artist2, isPrimary: false }));
+              artists2.push(...validArtists);
+            }
+          }
+          if (artists2.length > 0) {
+            await cacheMediaSessionResult(mediaData, artists2);
+            console.log("Successfully preloaded and cached artist data via name lookup");
+            return artists2;
+          }
+        }
+      }
+      if (mediaData.title && artists2.length === 0) {
+        console.log("Preload: falling back to AI extraction");
+        const artistNames = await extractMultipleArtistsFromTitle(mediaData);
+        console.log("AI extracted names:", artistNames);
+        if (artistNames.length > 0) {
+          const foundArtists = await fetchMultipleArtistsByNames(artistNames);
+          const validArtists = foundArtists.filter((artist) => artist && !artist.error && artist.id).map((artist) => ({ ...artist, isPrimary: false }));
+          artists2.push(...validArtists);
+        }
+        await cacheMediaSessionResult(mediaData, artists2);
+      }
+      return artists2;
+    } catch (error) {
+      console.error("Preload error:", error);
+      return [];
+    }
+  }
+  async function preLoadYT() {
+    const videoId = getVideoId(window.location.href);
+    if (!videoId) return;
+    const cached = await getCachedVideoResult(videoId);
+    if (cached) return;
+    const info = await fetchYTInfo(videoId);
+    if (!info) return;
+    let artists2 = [];
+    const artist = await fetchArtist({
+      id: info.id,
+      title: info.title,
+      channel: info.channel
+    });
+    if (artist && !artist.error) {
+      artists2.push({ ...artist, isPrimary: true });
+      if (hasCollaborationKeywords(info.title)) {
+        console.log("[preload] using AI for collaborators");
+        const allArtistNames = await extractMultipleArtistsFromTitle(info);
+        const newNames = allArtistNames.filter(
+          (name) => name.toLowerCase() !== artist.name.toLowerCase()
+        );
+        if (newNames.length > 0) {
+          const newArtists = await fetchMultipleArtistsByNames(newNames);
+          const validArtists = newArtists.filter((artist2) => artist2 && !artist2.error && artist2.id).map((artist2) => ({ ...artist2, isPrimary: false }));
+          artists2.push(...validArtists);
+        }
+      }
+    }
+    if (artists2.length === 0 && info.title) {
+      console.log("[Preload] falling back to AI");
+      const artistNames = await extractMultipleArtistsFromTitle(info);
+      if (artistNames.length > 0) {
+        const foundArtists = await fetchMultipleArtistsByNames(artistNames);
+        const validArtists = foundArtists.filter((artist2) => artist2 && !artist2.error && artist2.id).map((artist2) => ({ ...artist2, isPrimary: false }));
+        artists2.push(...validArtists);
+      }
+    }
+    if (artists2.length > 0) {
+      console.log("Successfully preloaded YouTube data");
+    }
+    await cacheVideoResult(videoId, artists2);
+    return artists2;
+  }
+  async function preLoad() {
+    try {
+      const videoId = getVideoId(window.location.href);
+      if (videoId) {
+        console.log("preloading youtube");
+        return await preLoadYT(videoId);
+      }
+      const mediaData = detectMediaSession();
+      if (mediaData && mediaData.title) {
+        console.log("preloading media session");
+        return await preLoadMediaSession(mediaData);
+      }
+      console.log("No preloadable content found");
+      return [];
+    } catch (error) {
+      console.error("Preload error:", error);
+      return [];
+    }
+  }
 
   // src/backend/client/mediaSession.js
   function isExtensionValid() {
