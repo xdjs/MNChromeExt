@@ -45,7 +45,7 @@ export async function getMainUrls(artist: any) {
             continue;
         }
 
-        if (platform.siteName = "youtubechannel") {
+        if (platform.siteName === "youtubechannel") {
           artistUrl = platform.appStringFormat.replace("%@", value);
 
             artistlinks.push({
