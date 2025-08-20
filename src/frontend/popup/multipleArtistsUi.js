@@ -1,5 +1,5 @@
 
-import { renderArtist } from "./ui.js";
+import { renderArtist } from "./renderArtist.js";
 
 let artistList = [];
 

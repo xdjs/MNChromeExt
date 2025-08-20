@@ -1,10 +1,10 @@
-import { detectMediaSession } from '../backend/client/mediaSession.js';
+import { detectMediaSession } from '../backend/client/watchMediaSession.js';
 import { getCachedMediaSessionResult, cacheMediaSessionResult, getCachedVideoResult, cacheVideoResult } from '../backend/client/cache.js';
-import { fetchArtistFromName, extractMultipleArtistsFromTitle, fetchMultipleArtistsByNames} from './api.js';
-import { hasCollaborationKeywords } from '../backend/client/collabs.js';
-import { getVideoId } from '../backend/client/linkExtractors.js';
+import { fetchArtistFromName, extractMultipleArtistsFromTitle, fetchMultipleArtistsByNames} from './backendConnections.js';
+import { hasCollaborationKeywords } from '../backend/client/hasCollabKeywords.js';
+import { getVideoId } from '../backend/client/getVideoId.js';
 import { fetchYTInfo } from '../backend/server/youtubeQueries.js';
-import { fetchArtist } from './api.js';
+import { fetchArtist } from './backendConnections.js';
 
 export async function preLoadMediaSession() {
     console.log("preloading...")

@@ -4,7 +4,7 @@
   var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
-  // src/backend/client/linkExtractors.js
+  // src/backend/client/getVideoId.js
   function getVideoId(url) {
     const patterns = [
       /v=([^&]+)/,
@@ -40,39 +40,6 @@
       tags: snip.tags,
       id: snip.channelId
     };
-  }
-
-  // src/backend/client/pageScraper.ts
-  function scrapeYTInfo() {
-    let title;
-    let channelName;
-    if (location.hostname === "music.youtube.com") {
-      title = document.querySelector(".title.ytmusic-player-bar");
-      channelName = document.querySelector(".byline.ytmusic-player-bar a");
-    } else {
-      title = document.querySelector("h1.title yt-formatted-string") || document.querySelector("ytd-watch-metadata h1");
-      channelName = document.querySelector("#owner-name a") || document.querySelector("ytd-channel-name#channel-name a");
-    }
-    const ytDescription = document.querySelector("#description");
-    const ytUsername = document.querySelector('a.yt-simple-endpoint.style-scope.yt-formatted-string[href^="/@"]');
-    console.log("[YT-EXT] titleEl", title, "channelEl", channelName);
-    if (title) {
-      console.log("Title: ", title.textContent.trim());
-    }
-    if (channelName) {
-      console.log("Channel: ", channelName.textContent.trim());
-    }
-    if (channelName && title && ytDescription) {
-      console.log(ytUsername?.textContent?.trim());
-      return {
-        videoTitle: title.textContent.trim(),
-        channel: channelName.textContent.trim(),
-        description: ytDescription?.textContent.trim(),
-        username: ytUsername?.textContent.trim()
-      };
-    }
-    console.log("no info found");
-    return null;
   }
 
   // src/backend/client/cache.js
@@ -1518,7 +1485,7 @@
     }
   );
 
-  // src/connections/api.js
+  // src/connections/backendConnections.js
   var API = "https://mn-chrome-ext.vercel.app";
   async function fetchArtist(info) {
     console.log("fetchArtist called with:", info);
@@ -1669,7 +1636,7 @@
     return withData;
   }
 
-  // src/backend/client/collabs.js
+  // src/backend/client/hasCollabKeywords.js
   function hasCollaborationKeywords(title) {
     const patterns = [
       /\bft\.?\s/i,
@@ -1815,7 +1782,7 @@
     }
   }
 
-  // src/backend/client/mediaSession.js
+  // src/backend/client/watchMediaSession.js
   function isExtensionValid() {
     try {
       chrome.runtime.id;
@@ -1901,9 +1868,6 @@
         console.error("[YT-EXT] Fetch error", err);
         sendResponse(null);
       });
-    }
-    if (req.type === "SCRAPE_YT_INFO") {
-      sendResponse(scrapeYTInfo());
     }
     return true;
   });

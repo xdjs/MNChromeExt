@@ -1,10 +1,10 @@
 // @ts-ignore -- JS file without type declarations
-import { getVideoId } from "../backend/client/linkExtractors.js";
+import { getVideoId } from "../backend/client/getVideoId.js";
 import { fetchYTInfo } from "../backend/server/youtubeQueries.js";
 // @ts-ignore -- compiled file provides the export
 import { scrapeYTInfo } from "../backend/client/pageScraper.js";
 // @ts-ignore -- JS file without type declarations
-import { detectMediaSession, watchForMediaSession } from "../backend/client/mediaSession.js";
+import { detectMediaSession, watchForMediaSession } from "../backend/client/watchMediaSession.js";
 
 
 console.log('[YT-EXT] content script injected');
@@ -26,9 +26,6 @@ chrome.runtime.onMessage.addListener((req, _sender, sendResponse) => {
         console.error('[YT-EXT] Fetch error', err);
         sendResponse(null);
       });
-  }
-  if (req.type === 'SCRAPE_YT_INFO') {
-    sendResponse(scrapeYTInfo());
   }
   return true; // keep the messaging channel open
 });

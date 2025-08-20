@@ -1,8 +1,8 @@
 
-import { renderArtists } from './multi-ui.js';
-import { errorScreen } from './ui.js';
+import { renderArtists } from './multipleArtistsUi.js';
+import { errorScreen } from './renderArtist.js';
 import { fetchMultipleArtists, fetchArtistsMediaSession } from '../../connections/fetchArtists.js';
-import { isContentScriptReady } from '../../backend/browserInfo.js';
+import { isContentScriptReady } from '../../backend/client/getBrowserInfo.js';
 import { getCachedArtist } from '../../backend/client/cache.js';
 
 
@@ -44,7 +44,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   
 
   const artists = await fetchMultipleArtists(tab.id);
-  console.log("rendering multiple artists: artists number is " + artists.length);
   if (artists) {
     console.log(artists);
     if (artists.length > 0) {

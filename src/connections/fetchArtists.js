@@ -1,6 +1,6 @@
-import { fetchArtist, fetchArtistFromName, extractArtistFromTitle, extractMultipleArtistsFromTitle, fetchMultipleArtistsByNames}   from './api.js';
-import { getYTInfo, scrapeYTInfo, getMediaSessionInfo  }     from '../backend/browserInfo.js';
-import { hasCollaborationKeywords } from '../backend/client/collabs.js';
+import { fetchArtist, fetchArtistFromName, extractArtistFromTitle, extractMultipleArtistsFromTitle, fetchMultipleArtistsByNames}   from './backendConnections.js';
+import { getYTInfo, getMediaSessionInfo  }     from '../backend/client/getBrowserInfo.js';
+import { hasCollaborationKeywords } from '../backend/client/hasCollabKeywords.js';
 import { cacheVideoResult, getCachedVideoResult, cacheArtist, getCachedArtist, getCachedMediaSessionResult, cacheMediaSessionResult } from '../backend/client/cache.js';
 
 // Helper function to extract video ID from URL

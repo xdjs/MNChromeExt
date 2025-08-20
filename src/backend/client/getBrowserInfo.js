@@ -4,11 +4,6 @@ export function getYTInfo(tabId){
     });
   }
 
-export function scrapeYTInfo(tabId) {
-    return new Promise(res => {
-        chrome.tabs.sendMessage(tabId, {type: 'SCRAPE_YT_INFO'}, res);
-    });
-}
 
 export async function getMediaSessionInfo(tabId) {
 try {

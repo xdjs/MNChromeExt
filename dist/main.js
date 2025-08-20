@@ -4,7 +4,7 @@
   var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
   var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 
-  // src/frontend/popup/ui.js
+  // src/frontend/popup/renderArtist.js
   function renderArtist(a) {
     const spotifyData = a.spotifyData?.data || a.spotifyData;
     const imageUrl = spotifyData?.images?.[0]?.url;
@@ -212,7 +212,7 @@
     console.log(bioEl);
   }
 
-  // src/frontend/popup/multi-ui.js
+  // src/frontend/popup/multipleArtistsUi.js
   var artistList = [];
   var activeArtistIndex = 0;
   function renderArtists(artists2) {
@@ -1738,7 +1738,7 @@
     }
   );
 
-  // src/connections/api.js
+  // src/connections/backendConnections.js
   var API = "https://mn-chrome-ext.vercel.app";
   async function fetchArtist(info) {
     console.log("fetchArtist called with:", info);
@@ -1840,7 +1840,7 @@
     return withData;
   }
 
-  // src/backend/browserInfo.js
+  // src/backend/client/getBrowserInfo.js
   function getYTInfo(tabId) {
     return new Promise((res) => {
       chrome.tabs.sendMessage(tabId, { type: "GET_YT_INFO" }, res);
@@ -1879,7 +1879,7 @@
     });
   }
 
-  // src/backend/client/collabs.js
+  // src/backend/client/hasCollabKeywords.js
   function hasCollaborationKeywords(title) {
     const patterns = [
       /\bft\.?\s/i,
@@ -2029,7 +2029,6 @@
       return;
     }
     const artists2 = await fetchMultipleArtists(tab.id);
-    console.log("rendering multiple artists: artists number is " + artists2.length);
     if (artists2) {
       console.log(artists2);
       if (artists2.length > 0) {
