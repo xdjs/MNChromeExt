@@ -44,6 +44,19 @@ export async function getMainUrls(artist: any) {
         if (!value || platform.siteName === "ens") {
             continue;
         }
+
+        if (platform.siteName = "youtubechannel") {
+          artistUrl = platform.appStringFormat.replace("%@", value);
+
+            artistlinks.push({
+                label: "Youtube",
+                url: artistUrl,
+                image: platform.siteImage,
+                order: platform.order || 0, // Default order if missing
+                platform_type_list: platform.platformTypeList
+        })
+      }
+        
         
         try {
             artistUrl = platform.appStringFormat.replace("%@", value);

@@ -2029,7 +2029,7 @@
       return;
     }
     const artists2 = await fetchMultipleArtists(tab.id);
-    console.log("rendering multiple artists");
+    console.log("rendering multiple artists: artists number is " + artists2.length);
     if (artists2) {
       console.log(artists2);
       if (artists2.length > 0) {

@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
 
   const artists = await fetchMultipleArtists(tab.id);
-  console.log("rendering multiple artists")
+  console.log("rendering multiple artists: artists number is " + artists.length);
   if (artists) {
     console.log(artists);
     if (artists.length > 0) {

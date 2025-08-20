@@ -1,5 +1,5 @@
 {
-  "manifest_version": 4,
+  "manifest_version": 3,
   "name": "Music Nerd Chrome Extension",
   "version": "1.0.3",
   "description": "Detects currently playing music and displays artist information from the MusicNerd Database including bios and social media links.",
